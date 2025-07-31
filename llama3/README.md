@@ -134,6 +134,8 @@ Compatible with:
 
 This implementation achieves 100% compatibility with the JavaScript reference implementation through a custom state machine that exactly replicates the regex behavior. All edge cases, including complex whitespace patterns, are handled correctly.
 
+For detailed implementation notes and technical design decisions, see [IMPLEMENTATION.md](IMPLEMENTATION.md).
+
 
 ## Data Files
 
