@@ -30,3 +30,16 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Data files are included in this repository for the llama3 tokenizer
+
+# Temporary files
+*.tmp
+*.bak
+extract_data.js
+
+# Build artifacts
+cmd/example/example
+
+# Local settings
+.claude/
