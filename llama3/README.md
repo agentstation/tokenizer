@@ -94,8 +94,44 @@ if err != nil {
 }
 
 // Or with custom data files
+vocabBase64 := "..." // Base64-encoded vocabulary JSON (about 1.5MB)
+mergesBinary := "..." // Base64-encoded binary merge rules (about 1.5MB)
+specialTokens := []string{
+    "<|begin_of_text|>",
+    "<|end_of_text|>",
+    "<|start_header_id|>",
+    "<|end_header_id|>",
+    // ... other special tokens
+}
+
 tokenizer, err := llama3.New(
     llama3.WithVocabData(vocabBase64, mergesBinary, specialTokens),
+)
+
+// Example: Loading from files
+vocabData, err := os.ReadFile("vocab_base64.txt")
+if err != nil {
+    panic(err)
+}
+mergesData, err := os.ReadFile("merges_binary.txt")
+if err != nil {
+    panic(err)
+}
+
+tokenizer, err = llama3.New(
+    llama3.WithVocabData(
+        string(vocabData),
+        string(mergesData),
+        []string{
+            "<|begin_of_text|>",
+            "<|end_of_text|>",
+            "<|start_header_id|>",
+            "<|end_header_id|>",
+            "<|eot_id|>",
+            "<|python_tag|>",
+            // Add all 256 special tokens as needed
+        },
+    ),
 )
 ```
 
