@@ -33,7 +33,7 @@ import (
 )
 
 func main() {
-    tokenizer, err := llama3.NewDefault()
+    tokenizer, err := llama3.New()
     if err != nil {
         panic(err)
     }

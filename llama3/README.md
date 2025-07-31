@@ -31,7 +31,7 @@ import (
 
 func main() {
     // Create tokenizer with default Llama 3 vocabulary
-    tokenizer, err := llama3.NewDefault()
+    tokenizer, err := llama3.New()
     if err != nil {
         panic(err)
     }
@@ -78,6 +78,25 @@ if err == nil {
 // Encode text containing special tokens
 text := "<|start_header_id|>system<|end_header_id|>You are a helpful assistant."
 tokens := tokenizer.Encode(text, nil)
+```
+
+### Advanced Options
+
+Create a tokenizer with custom configuration:
+
+```go
+// Create tokenizer with custom cache size
+tokenizer, err := llama3.New(
+    llama3.WithCacheSize(8192), // Custom cache size (default: 4096)
+)
+if err != nil {
+    panic(err)
+}
+
+// Or with custom data files
+tokenizer, err := llama3.New(
+    llama3.WithVocabData(vocabBase64, mergesBinary, specialTokens),
+)
 ```
 
 ### Optimistic Token Counting

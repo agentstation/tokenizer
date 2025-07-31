@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	// Create tokenizer
-	tokenizer, err := llama3.NewDefault()
+	tokenizer, err := llama3.New()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating tokenizer: %v\n", err)
 		os.Exit(1)
@@ -53,7 +53,7 @@ func main() {
 			EOS: !*noEOS,
 		}
 		tokens := tokenizer.Encode(*text, opts)
-		
+
 		if *verbose {
 			fmt.Printf("Text: %s\n", *text)
 			fmt.Printf("Tokens (%d): %v\n", len(tokens), tokens)
@@ -101,7 +101,7 @@ func runInteractive(tokenizer *llama3.Tokenizer, noBOS, noEOS, verbose bool) {
 
 		// Encode the text
 		tokens := tokenizer.Encode(line, opts)
-		
+
 		if verbose {
 			fmt.Printf("Tokens (%d): %v\n", len(tokens), tokens)
 			fmt.Printf("Decoded: %s\n", tokenizer.Decode(tokens))
@@ -114,7 +114,7 @@ func runInteractive(tokenizer *llama3.Tokenizer, noBOS, noEOS, verbose bool) {
 func parseTokens(s string) []int {
 	parts := strings.Split(s, ",")
 	tokens := make([]int, 0, len(parts))
-	
+
 	for _, part := range parts {
 		part = strings.TrimSpace(part)
 		var token int
@@ -122,7 +122,7 @@ func parseTokens(s string) []int {
 			tokens = append(tokens, token)
 		}
 	}
-	
+
 	return tokens
 }
 

@@ -101,7 +101,7 @@ This ensures all possible byte sequences can be tokenized.
 ### Basic Tokenization
 
 ```go
-tokenizer, err := llama3.NewDefault()
+tokenizer, err := llama3.New()
 if err != nil {
     log.Fatal(err)
 }
