@@ -131,6 +131,8 @@ The tokenizer requires two data files:
 
 The data files are included in this repository and will be automatically loaded when you use the tokenizer.
 
+These files were extracted from the [llama3-tokenizer-js](https://github.com/belladoreai/llama3-tokenizer-js) project.
+
 ### Build Options
 
 **Option 1: Embedded Data (Recommended)**
@@ -174,4 +176,4 @@ MIT License - see LICENSE file for details.
 
 ## Acknowledgments
 
-This implementation is based on the JavaScript [llama3-tokenizer-js](https://github.com/belladoreai/llama3-tokenizer-js) by belladoreai.
+This implementation is based on the JavaScript [llama3-tokenizer-js](https://github.com/belladoreai/llama3-tokenizer-js) by belladoreai. The vocabulary and merge data files were extracted from their bundled JavaScript implementation.
