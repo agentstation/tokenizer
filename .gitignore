@@ -1,6 +1,7 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
+# =============================================================================
+# Go
+# =============================================================================
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -11,35 +12,173 @@
 # Test binary, built with `go test -c`
 *.test
 
-# Code coverage profiles and other test artifacts
+# Output of the go coverage tool
 *.out
 coverage.*
 *.coverprofile
 profile.cov
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+coverage.html
+coverage.xml
 
 # Go workspace file
 go.work
 go.work.sum
 
-# env file
-.env
+# Dependency directories (remove the comment below to include it)
+# vendor/
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# =============================================================================
+# Profiling and Performance
+# =============================================================================
 
-# Data files are included in this repository for the llama3 tokenizer
+# CPU and memory profiles
+*.prof
+cpu.prof
+mem.prof
+*.pprof
+
+# Benchmark results
+*.bench
+benchmarks/
+
+# Trace files
+*.trace
+
+# =============================================================================
+# Operating System Files
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Editors and IDEs
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
+
+# IntelliJ IDEA / GoLand
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+tags
+[._]*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+.org-id-locations
+*_archive
+*_flymake.*
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# =============================================================================
+# Build and Temporary Files
+# =============================================================================
+
+# Build artifacts
+build/
+dist/
+bin/
+cmd/example/example
 
 # Temporary files
 *.tmp
+*.temp
 *.bak
+*.backup
+*.swp
+*.swo
+*~.nib
+*.pid
+*.seed
+*.pid.lock
+*.log
+
+# Archives
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# =============================================================================
+# Project Specific
+# =============================================================================
+
+# Data files are included in this repository for the llama3 tokenizer
+# But exclude temporary extraction scripts
 extract_data.js
 
-# Build artifacts
-cmd/example/example
-
-# Local settings
+# Local settings and secrets
+.env
+.env.local
+.env.*.local
 .claude/
+
+# Temporary test files
+test_output/
+tmp/

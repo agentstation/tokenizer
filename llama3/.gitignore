@@ -1,0 +1,24 @@
+# Local development and testing artifacts
+*.prof
+*.pprof
+*.trace
+*.bench
+*.test
+*.out
+
+# Temporary test data
+test_output/
+tmp/
+
+# Editor swap files
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug binaries
+debug
+debug.test

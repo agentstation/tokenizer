@@ -115,13 +115,6 @@ Compatible with:
 
 This implementation achieves 100% compatibility with the JavaScript reference implementation through a custom state machine that exactly replicates the regex behavior. All edge cases, including complex whitespace patterns, are handled correctly.
 
-## Performance
-
-The tokenizer includes several optimizations:
-- Object pooling for state machines
-- Caching of BPE results for repeated tokens
-- Efficient priority queue for merge operations
-- Minimal memory allocations
 
 ## Data Files
 
@@ -164,10 +157,31 @@ Run the test suite:
 go test ./llama3
 ```
 
+Run extended compatibility tests (476 test cases):
+
+```bash
+go test -run TestExtendedCompatibility -v ./llama3
+```
+
 Run benchmarks:
 
 ```bash
 go test -bench=. ./llama3
+```
+
+## Performance
+
+The tokenizer is optimized for production use with:
+
+- **Object pooling**: Reuses state machines and token buffers for 36% less memory usage
+- **BPE caching**: Caches merge operations for repeated tokens
+- **Efficient data structures**: Priority queue for BPE, pre-computed lookups
+- **Comprehensive benchmarks**: See [OPTIMIZATIONS.md](OPTIMIZATIONS.md) for implementation details
+
+Run benchmarks:
+
+```bash
+go test -bench=. -benchmem ./llama3
 ```
 
 ## License

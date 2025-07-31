@@ -219,30 +219,3 @@ func TestLargeText(t *testing.T) {
 	}
 }
 
-func BenchmarkEncode(b *testing.B) {
-	tokenizer, err := NewDefault()
-	if err != nil || tokenizer.VocabSize() == 0 {
-		b.Skip("Skipping benchmark: Llama 3 data not available")
-	}
-
-	text := "This is a test sentence for benchmarking the tokenizer performance."
-	
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_ = tokenizer.Encode(text, nil)
-	}
-}
-
-func BenchmarkDecode(b *testing.B) {
-	tokenizer, err := NewDefault()
-	if err != nil || tokenizer.VocabSize() == 0 {
-		b.Skip("Skipping benchmark: Llama 3 data not available")
-	}
-
-	tokens := []int{128000, 2028, 374, 264, 1296, 11914, 369, 29531, 287, 279, 4037, 3213, 5178, 13, 128001}
-	
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_ = tokenizer.Decode(tokens)
-	}
-}

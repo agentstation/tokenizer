@@ -21,6 +21,13 @@ var stateMachinePool = &sync.Pool{
 	},
 }
 
+// tokenBufPool provides a pool of token buffers for better memory efficiency
+var tokenBufPool = sync.Pool{
+	New: func() interface{} {
+		return make([]string, 0, 64)
+	},
+}
+
 // getStateMachine gets a state machine from the pool
 func getStateMachine(text string) *StateMachine {
 	sm := stateMachinePool.Get().(*StateMachine)
@@ -37,18 +44,32 @@ func putStateMachine(sm *StateMachine) {
 	stateMachinePool.Put(sm)
 }
 
-// Tokenize tokenizes text using a pooled state machine
+// Tokenize tokenizes text using a pooled state machine with optimized memory usage
 func Tokenize(text string) []string {
 	sm := getStateMachine(text)
-	defer putStateMachine(sm)
 	
+	// Use pooled token buffer for better memory efficiency
+	tokens := tokenBufPool.Get().([]string)
+	sm.tokens = tokens[:0]
+	
+	// Process tokens
 	for sm.position < len(sm.input) {
 		sm.matchNext()
 	}
 	
-	// Return a copy to avoid issues with pooling
+	// Copy results before returning to pool
 	result := make([]string, len(sm.tokens))
 	copy(result, sm.tokens)
+	
+	// Return token buffer to pool
+	if cap(sm.tokens) <= 1024 {
+		tokenBufPool.Put(sm.tokens[:0])
+	}
+	
+	// Return state machine to pool
+	sm.tokens = nil // Clear reference
+	putStateMachine(sm)
+	
 	return result
 }
 
