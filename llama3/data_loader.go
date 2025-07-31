@@ -3,7 +3,6 @@
 package llama3
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -14,17 +13,17 @@ func LoadDataFromFiles(vocabPath, mergesPath string) error {
 	// Load vocabulary
 	vocabData, err := os.ReadFile(vocabPath)
 	if err != nil {
-		return fmt.Errorf("failed to read vocabulary file: %w", err)
+		return NewDataError("read file", vocabPath, err)
 	}
 	defaultVocabBase64 = string(vocabData)
-	
+
 	// Load merges
 	mergesData, err := os.ReadFile(mergesPath)
 	if err != nil {
-		return fmt.Errorf("failed to read merges file: %w", err)
+		return NewDataError("read file", mergesPath, err)
 	}
 	defaultMergesBinary = string(mergesData)
-	
+
 	return nil
 }
 
@@ -34,7 +33,7 @@ func TryLoadDataFromStandardPaths() error {
 	if err := LoadDataFromFiles("vocab_base64.txt", "merges_binary.txt"); err == nil {
 		return nil
 	}
-	
+
 	// Try llama3 subdirectory
 	if err := LoadDataFromFiles(
 		filepath.Join("llama3", "vocab_base64.txt"),
@@ -42,7 +41,7 @@ func TryLoadDataFromStandardPaths() error {
 	); err == nil {
 		return nil
 	}
-	
+
 	// Try parent directory (useful for tests)
 	if err := LoadDataFromFiles(
 		filepath.Join("..", "vocab_base64.txt"),
@@ -50,8 +49,8 @@ func TryLoadDataFromStandardPaths() error {
 	); err == nil {
 		return nil
 	}
-	
-	return fmt.Errorf("could not find Llama 3 data files in standard locations")
+
+	return NewDataError("find data files", "", ErrDataNotFound)
 }
 
 func init() {

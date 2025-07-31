@@ -4,14 +4,14 @@ import "container/heap"
 
 // mergeNode represents a position in the token sequence that can be merged.
 type mergeNode struct {
-	origPos      int     // Original position in the sequence
-	tokenID      int     // Token ID at this position
-	mergePrio    float64 // Merge priority (lower is better)
+	origPos       int     // Original position in the sequence
+	tokenID       int     // Token ID at this position
+	mergePrio     float64 // Merge priority (lower is better)
 	mergeToString string  // Result of merging with next token
-	prev         *mergeNode
-	next         *mergeNode
-	deleted      bool    // Whether this node has been deleted
-	heapIndex    int     // Index in the heap (for container/heap)
+	prev          *mergeNode
+	next          *mergeNode
+	deleted       bool // Whether this node has been deleted
+	heapIndex     int  // Index in the heap (for container/heap)
 }
 
 // priorityQueue implements a min-heap of merge nodes.
@@ -41,7 +41,7 @@ func (pq *priorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)
 	node := old[n-1]
-	old[n-1] = nil  // avoid memory leak
+	old[n-1] = nil // avoid memory leak
 	node.heapIndex = -1
 	*pq = old[0 : n-1]
 	return node

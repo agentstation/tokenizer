@@ -3,20 +3,29 @@
 // supporting byte-level BPE tokenization with all special tokens.
 package llama3
 
-import (
-	"fmt"
-	"sync"
-)
+// tokenizerConfig holds configuration during tokenizer creation
+type tokenizerConfig struct {
+	vocabBase64   string
+	mergesBinary  string
+	specialTokens []string
+	cacheSize     int
+}
 
 // Tokenizer implements the Llama 3 BPE tokenizer.
 type Tokenizer struct {
 	vocabByID     []string
 	vocabByString map[string]int
 	merges        map[string]int
-	
-	// Cache for pre-tokenization results
-	cache      map[string][]int
-	cacheMutex sync.RWMutex
+
+	// Cache for BPE results
+	cache     bpeCache
+	cacheSize int // Maximum cache size (0 = unlimited)
+}
+
+// bpeCache defines the interface for BPE result caching.
+type bpeCache interface {
+	get(key string) ([]int, bool)
+	put(key string, value []int)
 }
 
 // EncodeOptions controls the encoding behavior.
@@ -27,150 +36,187 @@ type EncodeOptions struct {
 	EOS bool
 }
 
-// DefaultEncodeOptions returns the default encoding options.
-func DefaultEncodeOptions() *EncodeOptions {
+// defaultEncodeOptions returns the default encoding options.
+func defaultEncodeOptions() *EncodeOptions {
 	return &EncodeOptions{
 		BOS: true,
 		EOS: true,
 	}
 }
 
-// New creates a new Llama 3 tokenizer with custom vocabulary and merge data.
-// If vocabBase64 or mergesBinary are empty, the default Llama 3 data will be used.
-// specialTokens can be nil to use the default Llama 3 special tokens.
-func New(vocabBase64, mergesBinary string, specialTokens []string) (*Tokenizer, error) {
-	t := &Tokenizer{
-		cache: make(map[string][]int),
+// New creates a new Llama 3 tokenizer with the given options.
+// If no options are provided, the default Llama 3 vocabulary and settings will be used.
+//
+// Example:
+//
+//	tokenizer, err := llama3.New()
+//	if err != nil {
+//	    return err
+//	}
+//
+//	// With custom vocabulary:
+//	tokenizer, err := llama3.New(
+//	    llama3.WithVocabulary(customVocab),
+//	    llama3.WithMerges(customMerges),
+//	)
+//
+//	// With cache size limit:
+//	tokenizer, err := llama3.New(
+//	    llama3.WithCacheSize(1000),
+//	)
+func New(opts ...Option) (*Tokenizer, error) {
+	// Default configuration
+	config := &tokenizerConfig{
+		vocabBase64:   "",
+		mergesBinary:  "",
+		specialTokens: nil,
+		cacheSize:     defaultCacheSize,
 	}
-	
+
+	// Apply options to configuration
+	for _, opt := range opts {
+		if err := opt(config); err != nil {
+			return nil, err
+		}
+	}
+
+	// Create tokenizer with configured cache size
+	t := &Tokenizer{
+		cacheSize: config.cacheSize,
+	}
+
+	// Initialize cache based on size
+	if t.cacheSize == 0 {
+		t.cache = &simpleCache{cache: make(map[string][]int)}
+	} else {
+		t.cache = newLRUCache(t.cacheSize)
+	}
+
 	// Load vocabulary
 	var err error
+	vocabBase64 := config.vocabBase64
 	if vocabBase64 == "" {
 		vocabBase64 = defaultVocabBase64
 		if vocabBase64 == "" {
-			return nil, fmt.Errorf("no vocabulary data available. Please ensure the data files are properly loaded. " +
-				"See https://github.com/agentstation/tokenizer/llama3#data-files for instructions")
+			return nil, NewDataError("load vocabulary", "", ErrDataNotFound)
 		}
 	}
 	t.vocabByID, err = decodeVocabulary(vocabBase64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode vocabulary: %w", err)
+		return nil, NewDataError("decode vocabulary", "", err)
 	}
-	
+
 	// Add special tokens
+	specialTokens := config.specialTokens
 	if specialTokens == nil {
 		specialTokens = getDefaultSpecialTokens()
 	}
 	t.vocabByID = append(t.vocabByID, specialTokens...)
-	
+
 	// Build string-to-ID mapping
 	t.vocabByString = make(map[string]int, len(t.vocabByID))
 	for id, token := range t.vocabByID {
 		t.vocabByString[token] = id
 	}
-	
+
 	// Load merges
+	mergesBinary := config.mergesBinary
 	if mergesBinary == "" {
 		mergesBinary = defaultMergesBinary
 		if mergesBinary == "" {
-			return nil, fmt.Errorf("no merge data available. Please ensure the data files are properly loaded. " +
-				"See https://github.com/agentstation/tokenizer/llama3#data-files for instructions")
+			return nil, NewDataError("load merges", "", ErrDataNotFound)
 		}
 	}
 	t.merges, err = t.decompressMerges(mergesBinary)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decompress merges: %w", err)
+		return nil, NewDataError("decompress merges", "", err)
 	}
-	
+
 	return t, nil
 }
 
-// NewDefault creates a new tokenizer with the default Llama 3 vocabulary and merges.
-func NewDefault() (*Tokenizer, error) {
-	return New("", "", nil)
-}
 
 // Encode converts text into a sequence of token IDs.
 // If opts is nil, default options will be used.
 func (t *Tokenizer) Encode(text string, opts *EncodeOptions) []int {
 	if opts == nil {
-		opts = DefaultEncodeOptions()
+		opts = defaultEncodeOptions()
 	}
-	
-	output := make([]int, 0, len(text)/4) // Rough estimate
-	
+
+	output := make([]int, 0, len(text)/estimatedTokensPerCharacter)
+
 	// Add beginning-of-text token
 	if opts.BOS {
 		if id, err := t.GetSpecialTokenID(beginOfTextToken); err == nil {
 			output = append(output, id)
 		}
 	}
-	
+
 	// Split by special tokens first
 	specialSplits := splitBySpecialTokens(text, specialTokenRegex)
-	
+
 	for _, specialSplit := range specialSplits {
 		// Check if this is a special token
 		if specialTokenRegex.MatchString(specialSplit) && t.vocabByString[specialSplit] != 0 {
 			output = append(output, t.vocabByString[specialSplit])
 			continue
 		}
-		
+
 		// Not a special token, process normally
 		// Pre-tokenize using regex
 		pretokens := t.pretokenize(specialSplit)
-		
+
 		// Process each pretoken
 		for _, pretoken := range pretokens {
 			if pretoken == "" {
 				continue
 			}
-			
+
 			// Perform BPE on the pretoken
 			tokenIDs := t.performBPE(pretoken)
 			output = append(output, tokenIDs...)
 		}
 	}
-	
+
 	// Add end-of-text token
 	if opts.EOS {
 		if id, err := t.GetSpecialTokenID(endOfTextToken); err == nil {
 			output = append(output, id)
 		}
 	}
-	
+
 	return output
 }
 
 // Decode converts a sequence of token IDs back into text.
 func (t *Tokenizer) Decode(tokenIDs []int) string {
-	utf8Bytes := make([]byte, 0, len(tokenIDs)*3) // Rough estimate
-	
+	utf8Bytes := make([]byte, 0, len(tokenIDs)*bytesPerMerge)
+
 	for _, tokenID := range tokenIDs {
 		if tokenID < 0 || tokenID >= len(t.vocabByID) {
 			continue // Skip invalid token IDs
 		}
-		
+
 		tokenString := t.vocabByID[tokenID]
 		// Convert from custom byte representation back to UTF-8
 		decodedBytes := decodeTokenBytes(tokenString)
 		utf8Bytes = append(utf8Bytes, decodedBytes...)
 	}
-	
+
 	return string(utf8Bytes)
 }
 
 // GetSpecialTokenID returns the token ID for a special token string.
 func (t *Tokenizer) GetSpecialTokenID(token string) (int, error) {
 	if !isSpecialToken(token) {
-		return 0, fmt.Errorf("invalid special token format: %s", token)
+		return 0, NewTokenError("validate special token", token, ErrInvalidToken)
 	}
-	
+
 	id, ok := t.vocabByString[token]
 	if !ok {
-		return 0, fmt.Errorf("special token not found: %s", token)
+		return 0, NewTokenError("get special token ID", token, ErrTokenNotFound)
 	}
-	
+
 	return id, nil
 }
 
@@ -179,16 +225,16 @@ func (t *Tokenizer) GetSpecialTokenID(token string) (int, error) {
 // models with modified special tokens.
 func (t *Tokenizer) OptimisticCount(text string) int {
 	// Use optimistic regex that matches any <|...|> pattern
-	output := make([]int, 0, len(text)/4)
-	
+	output := make([]int, 0, len(text)/estimatedTokensPerCharacter)
+
 	// Always add BOS and EOS for optimistic count
 	if id, err := t.GetSpecialTokenID(beginOfTextToken); err == nil {
 		output = append(output, id)
 	}
-	
+
 	// Split by optimistic special token regex
 	specialSplits := splitBySpecialTokens(text, optimisticSpecialTokenRegex)
-	
+
 	for _, specialSplit := range specialSplits {
 		// Check if this looks like a special token
 		if optimisticSpecialTokenRegex.MatchString(specialSplit) {
@@ -201,25 +247,25 @@ func (t *Tokenizer) OptimisticCount(text string) int {
 			}
 			continue
 		}
-		
+
 		// Not a special token, process normally
 		pretokens := t.pretokenize(specialSplit)
-		
+
 		for _, pretoken := range pretokens {
 			if pretoken == "" {
 				continue
 			}
-			
+
 			tokenIDs := t.performBPE(pretoken)
 			output = append(output, tokenIDs...)
 		}
 	}
-	
+
 	// Add EOS
 	if id, err := t.GetSpecialTokenID(endOfTextToken); err == nil {
 		output = append(output, id)
 	}
-	
+
 	return len(output)
 }
 

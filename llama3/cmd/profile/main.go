@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// Initialize tokenizer
-	tokenizer, err := llama3.NewDefault()
+	tokenizer, err := llama3.New()
 	if err != nil {
 		log.Fatal("failed to create tokenizer: ", err)
 	}

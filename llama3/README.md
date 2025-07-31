@@ -157,10 +157,10 @@ Run the test suite:
 go test ./llama3
 ```
 
-Run extended compatibility tests (476 test cases):
+Run compatibility tests (476 test cases):
 
 ```bash
-go test -run TestExtendedCompatibility -v ./llama3
+go test -run TestCompatibility -v ./llama3
 ```
 
 Run benchmarks:

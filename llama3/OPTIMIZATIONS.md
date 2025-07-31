@@ -8,13 +8,13 @@ The Llama3 tokenizer uses a state machine approach to match the JavaScript imple
 
 ## Benchmarking Infrastructure
 
-### 1. Comprehensive Benchmark Suite (`benchmark_detailed_test.go`)
+### 1. Comprehensive Benchmark Suite (`benchmark_test.go`)
 - **Micro-benchmarks**: Individual pattern matchers (tryContraction, tryWordWithPrefix, etc.)
 - **Text type benchmarks**: ASCII-heavy, Unicode-heavy, whitespace-heavy, code-like content
 - **Character classification**: Comparing unicode package vs custom implementations
 - **Memory patterns**: Token array growth, string building
 
-### 2. Extended Compatibility Test Suite (`test_vectors_extended.go`, `compatibility_extended_test.go`)
+### 2. Extended Compatibility Test Suite (`vectors_test.go`, `compatibility_test.go`)
 - **476 test cases** covering edge cases, unicode, whitespace, contractions, numbers, punctuation, real-world patterns
 - **Categories**: edge, unicode, whitespace, contraction, number, punctuation, prefix, real, code, boundary
 - **100% compatibility** verified against JavaScript implementation
@@ -87,8 +87,8 @@ go test -bench=. -benchmem
 # Run tokenizer benchmarks
 go test -bench="BenchmarkTokenize" -benchmem
 
-# Run extended compatibility tests
-go test -run TestExtendedCompatibility -v
+# Run compatibility tests
+go test -run TestCompatibility -v
 
 # Generate CPU profile
 go run cmd/profile/main.go -cpuprofile=cpu.prof -iterations=50000
