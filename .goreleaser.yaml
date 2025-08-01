@@ -95,9 +95,9 @@ release:
   github:
     owner: agentstation
     name: tokenizer
-  name_template: "{{.ProjectName}}-v{{.Version}}"
+  name_template: "v{{.Version}}"
   header: |
-    ## tokenizer v{{.Version}}
+    ## Release v{{.Version}}
     
     ### Installation
     
