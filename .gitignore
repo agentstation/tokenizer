@@ -143,7 +143,7 @@ build/
 dist/
 bin/
 cmd/example/example
-tokenizer
+/tokenizer
 
 # GoReleaser
 dist/
