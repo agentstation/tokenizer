@@ -130,8 +130,8 @@ brews:
     # Formula name
     name: tokenizer
     
-    # Folder inside the repository
-    folder: Formula
+    # Directory inside the repository
+    directory: Formula
     
     # Git commit information
     commit_author:
