@@ -4,11 +4,6 @@ version: "2"
 run:
   timeout: 5m
   tests: false
-  # Skip these directories entirely
-  skip-dirs:
-    - scripts
-    - vendor
-    - testdata
 
 issues:
   # Maximum issues to report
