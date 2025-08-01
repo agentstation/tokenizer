@@ -3,7 +3,7 @@
 [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/agentstation/tokenizer)
 [![Go Report Card](https://goreportcard.com/badge/github.com/agentstation/tokenizer?style=flat-square)](https://goreportcard.com/report/github.com/agentstation/tokenizer)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/agentstation/tokenizer/ci.yaml?style=flat-square)](https://github.com/agentstation/tokenizer/actions)
-[![codecov](https://codecov.io/gh/agentstation/tokenizer/branch/master/graph/badge.svg)](https://codecov.io/gh/agentstation/tokenizer)
+[![codecov](https://codecov.io/gh/agentstation/tokenizer/graph/badge.svg?token=EDNFP6DQLW)](https://codecov.io/gh/agentstation/tokenizer)
 [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/agentstation/tokenizer/master/LICENSE)
 
 A collection of high-performance tokenizer implementations in Go with a unified CLI interface.
