@@ -34,10 +34,10 @@ builds:
         goarch: arm
     ldflags:
       - -s -w
-      - -X github.com/agentstation/tokenizer/cmd/tokenizer.version={{.Version}}
-      - -X github.com/agentstation/tokenizer/cmd/tokenizer.commit={{.Commit}}
-      - -X github.com/agentstation/tokenizer/cmd/tokenizer.date={{.Date}}
-      - -X github.com/agentstation/tokenizer/cmd/tokenizer.builtBy=goreleaser
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.buildDate={{.Date}}
+      - -X main.goVersion={{.Runtime.Goversion}}
 
 archives:
   - id: tokenizer
