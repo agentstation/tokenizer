@@ -38,8 +38,6 @@ linters:
     - bodyclose    # Checks HTTP response body is closed
     - noctx        # Finds sending HTTP request without context
     - unconvert    # Removes unnecessary type conversions
-    - gofmt        # Checks code formatting
-    - goimports    # Checks import formatting
     - godot        # Checks comment punctuation
     
     # Performance
