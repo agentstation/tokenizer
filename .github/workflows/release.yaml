@@ -45,7 +45,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-        GO_VERSION: "go1.24"
 
     - name: Upload assets
       uses: actions/upload-artifact@v4

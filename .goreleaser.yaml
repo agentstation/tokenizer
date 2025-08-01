@@ -37,7 +37,7 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.ShortCommit}}
       - -X main.buildDate={{.Date}}
-      - -X main.goVersion={{.Env.GO_VERSION}}
+      - -X main.goVersion={{.Runtime.Goversion}}
       - -X main.builtBy=goreleaser
 
 archives:
