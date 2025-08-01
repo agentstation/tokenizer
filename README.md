@@ -25,11 +25,19 @@ brew install tokenizer
 
 ### Download Binary
 
-Download pre-built binaries from the [releases page](https://github.com/agentstation/tokenizer/releases/latest) for your platform:
+Download pre-built binaries from the [releases page](https://github.com/agentstation/tokenizer/releases/latest):
 
-- Linux: `tokenizer_VERSION_linux_amd64.tar.gz` or `tokenizer_VERSION_linux_arm64.tar.gz`
-- macOS: `tokenizer_VERSION_darwin_amd64.tar.gz` or `tokenizer_VERSION_darwin_arm64.tar.gz`
-- Windows: `tokenizer_VERSION_windows_amd64.zip` or `tokenizer_VERSION_windows_arm64.zip`
+| Platform | Architecture | File |
+|----------|-------------|------|
+| Linux | x86_64 | `tokenizer_VERSION_linux_x86_64.tar.gz` |
+| Linux | ARM64 | `tokenizer_VERSION_linux_arm64.tar.gz` |
+| Linux | ARMv6 | `tokenizer_VERSION_linux_armv6.tar.gz` |
+| Linux | ARMv7 | `tokenizer_VERSION_linux_armv7.tar.gz` |
+| macOS | Intel | `tokenizer_VERSION_darwin_x86_64.tar.gz` |
+| macOS | Apple Silicon | `tokenizer_VERSION_darwin_arm64.tar.gz` |
+| Windows | x86_64 | `tokenizer_VERSION_windows_x86_64.zip` |
+| FreeBSD | x86_64 | `tokenizer_VERSION_freebsd_x86_64.tar.gz` |
+| FreeBSD | ARM64 | `tokenizer_VERSION_freebsd_arm64.tar.gz` |
 
 ### Using Go
 
