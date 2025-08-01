@@ -101,6 +101,11 @@ release:
     
     ### Installation
     
+    #### Homebrew (macOS and Linux)
+    ```bash
+    brew install agentstation/tap/tokenizer
+    ```
+    
     #### Download Binary
     Download the appropriate binary for your platform from the assets below.
     
@@ -115,13 +120,116 @@ release:
     sha256sum -c checksums.txt
     ```
 
-# Optional: Homebrew tap configuration
-# brews:
-#   - name: tokenizer
-#     repository:
-#       owner: agentstation
-#       name: homebrew-tap
-#     directory: Formula
-#     homepage: https://github.com/agentstation/tokenizer
-#     description: "High-performance Llama 3 tokenizer in Go"
-#     license: "MIT"
+# Homebrew tap configuration
+brews:
+  - repository:
+      owner: agentstation
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    
+    # Formula name
+    name: tokenizer
+    
+    # Folder inside the repository
+    folder: Formula
+    
+    # Git commit information
+    commit_author:
+      name: "GitHub Actions"
+      email: "actions@github.com"
+    
+    commit_msg_template: "Update tokenizer to {{ .Tag }}"
+    
+    # Homepage
+    homepage: "https://github.com/agentstation/tokenizer"
+    
+    # Description
+    description: "High-performance tokenizer implementations in Go with unified CLI"
+    
+    # License
+    license: "MIT"
+    
+    # Skip upload if version exists
+    skip_upload: false
+    
+    # Dependencies
+    dependencies:
+      - name: go
+        type: build
+        version: "1.24"
+    
+    # Custom install block
+    install: |
+      if build.bottle?
+        bin.install "tokenizer"
+      else
+        # Build from source with version information
+        ldflags = %W[
+          -s -w
+          -X main.version=#{version}
+          -X main.commit=#{Utils.git_short_head}
+          -X main.buildDate=#{Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")}
+          -X main.goVersion=#{Formula["go"].version}
+        ]
+        system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/tokenizer"
+      end
+      
+      # Install documentation
+      doc.install "README.md", "LICENSE", "CLAUDE.md"
+      doc.install "llama3/README.md" => "llama3-README.md"
+      doc.install "llama3/IMPLEMENTATION.md" => "llama3-IMPLEMENTATION.md"
+      
+      # Install examples if they exist
+      if Dir.exist?("examples")
+        pkgshare.install "examples"
+      end
+    
+    # Test block
+    test: |
+      # Test version command
+      output = shell_output("#{bin}/tokenizer version")
+      assert_match version.to_s, output
+      assert_match "commit:", output
+      assert_match "built:", output
+      assert_match "go version:", output
+      
+      # Test help output
+      assert_match "Usage:", shell_output("#{bin}/tokenizer --help")
+      assert_match "Available Commands:", shell_output("#{bin}/tokenizer --help")
+      
+      # Test llama3 subcommand
+      assert_match "llama3", shell_output("#{bin}/tokenizer --help")
+      assert_match "encode", shell_output("#{bin}/tokenizer llama3 --help")
+      
+      # Test encoding
+      output = shell_output("#{bin}/tokenizer llama3 encode 'Hello, world!'")
+      assert_match "128000", output # begin_of_text token
+      assert_match "9906", output   # "Hello" token
+      assert_match "128001", output # end_of_text token
+      
+      # Test decoding
+      output = shell_output("#{bin}/tokenizer llama3 decode 128000 9906 11 1917 0 128001")
+      assert_match "Hello", output
+      assert_match "world", output
+      
+      # Test info command
+      output = shell_output("#{bin}/tokenizer llama3 info")
+      assert_match "Vocabulary Size: 128256", output
+      assert_match "Regular Tokens: 128000", output
+      assert_match "Special Tokens: 256", output
+      
+      # Test piping
+      output = pipe_output("#{bin}/tokenizer llama3 encode", "Test input")
+      assert_match "128000", output # begin_of_text token
+    
+    # Custom caveats (simplified from the manual formula)
+    caveats: |
+      Tokenizer has been installed! 🚀
+
+      Quick start:
+        tokenizer llama3 encode "Hello, world!"     # Encode text to tokens
+        tokenizer llama3 decode 128000 9906 128001  # Decode tokens to text
+        tokenizer llama3 info                       # Show tokenizer info
+        tokenizer --help                            # Show all commands
+
+      Documentation: https://github.com/agentstation/tokenizer
