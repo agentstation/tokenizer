@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// Constants for byte mapping ranges
+// Constants for byte mapping ranges.
 const (
 	asciiPrintableStart = '!'      // 33
 	asciiPrintableEnd   = '~'      // 126
@@ -16,9 +16,9 @@ const (
 )
 
 var (
-	// BytesToUnicode maps byte values to unicode characters for encoding
+	// BytesToUnicode maps byte values to unicode characters for encoding.
 	BytesToUnicode map[byte]rune
-	// UnicodeToBytes maps unicode characters back to byte values for decoding
+	// UnicodeToBytes maps unicode characters back to byte values for decoding.
 	UnicodeToBytes map[rune]byte
 )
 

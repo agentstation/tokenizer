@@ -14,7 +14,7 @@ type stateMachine struct {
 	tokens   []string
 }
 
-// stateMachinePool provides a pool of reusable state machines for performance
+// stateMachinePool provides a pool of reusable state machines for performance.
 var stateMachinePool = &sync.Pool{
 	New: func() interface{} {
 		return &stateMachine{
@@ -23,14 +23,14 @@ var stateMachinePool = &sync.Pool{
 	},
 }
 
-// tokenBufPool provides a pool of token buffers for better memory efficiency
+// tokenBufPool provides a pool of token buffers for better memory efficiency.
 var tokenBufPool = sync.Pool{
 	New: func() interface{} {
 		return make([]string, 0, defaultTokenBufferCapacity)
 	},
 }
 
-// getStateMachine gets a state machine from the pool
+// getStateMachine gets a state machine from the pool.
 func getStateMachine(text string) *stateMachine {
 	sm := stateMachinePool.Get().(*stateMachine)
 	sm.input = []rune(text)
@@ -39,7 +39,7 @@ func getStateMachine(text string) *stateMachine {
 	return sm
 }
 
-// putStateMachine returns a state machine to the pool
+// putStateMachine returns a state machine to the pool.
 func putStateMachine(sm *stateMachine) {
 	// Clear references to allow GC
 	sm.input = nil
@@ -68,7 +68,7 @@ func Tokenize(text string) []string {
 
 	// Return token buffer to pool
 	if cap(sm.tokens) <= 1024 {
-		tokenBufPool.Put(sm.tokens[:0])
+		tokenBufPool.Put(sm.tokens[:0]) // #nosec - slice header is small, not worth pointer optimization
 	}
 
 	// Return state machine to pool
@@ -89,7 +89,7 @@ func newStateMachine(text string) *stateMachine {
 	}
 }
 
-// tokenizeWithStateMachine processes the input according to the JS regex pattern
+// tokenizeWithStateMachine processes the input according to the JS regex pattern.
 func (sm *stateMachine) tokenizeWithStateMachine() []string {
 	for sm.position < len(sm.input) {
 		sm.matchNext()
@@ -97,7 +97,7 @@ func (sm *stateMachine) tokenizeWithStateMachine() []string {
 	return sm.tokens
 }
 
-// matchNext tries to match the next token according to the pattern
+// matchNext tries to match the next token according to the pattern.
 func (sm *stateMachine) matchNext() {
 	if sm.position >= len(sm.input) {
 		return
@@ -146,7 +146,7 @@ func (sm *stateMachine) matchNext() {
 	sm.position++
 }
 
-// tryContraction matches contractions
+// tryContraction matches contractions.
 func (sm *stateMachine) tryContraction() string {
 	if sm.position >= len(sm.input) || sm.input[sm.position] != '\'' {
 		return ""
@@ -166,7 +166,7 @@ func (sm *stateMachine) tryContraction() string {
 	return ""
 }
 
-// tryWordWithPrefix matches [^\r\n\p{L}\p{N}]?\p{L}+
+// tryWordWithPrefix matches [^\r\n\p{L}\p{N}]?\p{L}+.
 func (sm *stateMachine) tryWordWithPrefix() string {
 	start := sm.position
 
@@ -193,7 +193,7 @@ func (sm *stateMachine) tryWordWithPrefix() string {
 	return string(sm.input[start:sm.position])
 }
 
-// tryNumbers matches \p{N}{1,3}
+// tryNumbers matches \p{N}{1,3}.
 func (sm *stateMachine) tryNumbers() string {
 	if sm.position >= len(sm.input) || !isNumber(sm.input[sm.position]) {
 		return ""
@@ -209,7 +209,7 @@ func (sm *stateMachine) tryNumbers() string {
 	return string(sm.input[start:sm.position])
 }
 
-// tryPunctuationWithSpace matches  ?[^\s\p{L}\p{N}]+[\r\n]*
+// tryPunctuationWithSpace matches  ?[^\s\p{L}\p{N}]+[\r\n]*.
 func (sm *stateMachine) tryPunctuationWithSpace() string {
 	start := sm.position
 
@@ -249,7 +249,7 @@ func (sm *stateMachine) tryPunctuationWithSpace() string {
 	return string(sm.input[start:sm.position])
 }
 
-// tryNewlineSequence matches \s*[\r\n]+
+// tryNewlineSequence matches \s*[\r\n]+.
 func (sm *stateMachine) tryNewlineSequence() string {
 	start := sm.position
 
@@ -277,7 +277,7 @@ func (sm *stateMachine) tryNewlineSequence() string {
 	return string(sm.input[start:sm.position])
 }
 
-// tryWhitespace matches \s+(?!\S) or \s+
+// tryWhitespace matches \s+(?!\S) or \s+.
 func (sm *stateMachine) tryWhitespace() string {
 	if sm.position >= len(sm.input) || !isWhitespace(sm.input[sm.position]) {
 		return ""
@@ -302,7 +302,7 @@ func (sm *stateMachine) tryWhitespace() string {
 	return string(sm.input[start:sm.position])
 }
 
-// matchesAt checks if a string matches at current position (case-insensitive if specified)
+// matchesAt checks if a string matches at current position (case-insensitive if specified).
 func (sm *stateMachine) matchesAt(s string, caseInsensitive bool) bool {
 	runes := []rune(s)
 	if sm.position+len(runes) > len(sm.input) {
@@ -325,7 +325,7 @@ func (sm *stateMachine) matchesAt(s string, caseInsensitive bool) bool {
 	return true
 }
 
-// Character classification helpers
+// Character classification helpers.
 func isLetter(r rune) bool {
 	return unicode.IsLetter(r)
 }

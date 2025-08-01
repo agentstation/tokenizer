@@ -29,7 +29,11 @@ func main() {
 		if err != nil {
 			log.Fatal("could not create CPU profile: ", err)
 		}
-		defer f.Close()
+		defer func() {
+			if err := f.Close(); err != nil {
+				log.Printf("Failed to close CPU profile file: %v", err)
+			}
+		}()
 		if err := pprof.StartCPUProfile(f); err != nil {
 			log.Fatal("could not start CPU profile: ", err)
 		}
@@ -69,7 +73,11 @@ func main() {
 		if err != nil {
 			log.Fatal("could not create memory profile: ", err)
 		}
-		defer f.Close()
+		defer func() {
+			if err := f.Close(); err != nil {
+				log.Printf("Failed to close memory profile file: %v", err)
+			}
+		}()
 		runtime.GC() // get up-to-date statistics
 		if err := pprof.WriteHeapProfile(f); err != nil {
 			log.Fatal("could not write memory profile: ", err)
@@ -96,7 +104,7 @@ func getTestText(textType string) string {
 	case "unicode":
 		return "Hello world! 你好世界！ Привет мир! مرحبا بالعالم! " +
 			"🌍🌎🌏 Unicode test with emojis 🦙🐕🦊 and various scripts " +
-			"αβγδε ΑΒΓΔΕ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿"
+			"αβγδε ΑΒΓΔΕ ¡¢£¤¥¦§¨©ª«¬\u00ad®¯°±²³´µ¶·¸¹º»¼½¾¿"
 
 	case "whitespace":
 		return "   Multiple   spaces   between   words   \t\t\tand\ttabs\t\t\t" +

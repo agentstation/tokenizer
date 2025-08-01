@@ -6,14 +6,14 @@ import (
 	"unicode"
 )
 
-// TestCase represents a test case with metadata
+// TestCase represents a test case with metadata.
 type TestCase struct {
 	Input       string
 	Description string
 	Category    string // "edge", "unicode", "whitespace", "contraction", etc.
 }
 
-// GenerateTestCases creates comprehensive test cases
+// GenerateTestCases creates comprehensive test cases.
 func GenerateTestCases() []TestCase {
 	var cases []TestCase
 
@@ -87,9 +87,10 @@ func GenerateTestCases() []TestCase {
 				Category:    "contraction",
 			})
 			// Title case
+			titleCaseWord := strings.ToUpper(word[:1]) + strings.ToLower(word[1:])
 			cases = append(cases, TestCase{
-				Input:       strings.Title(word) + contraction,
-				Description: fmt.Sprintf("Title case: %s%s", strings.Title(word), contraction),
+				Input:       titleCaseWord + contraction,
+				Description: fmt.Sprintf("Title case: %s%s", titleCaseWord, contraction),
 				Category:    "contraction",
 			})
 		}
@@ -249,12 +250,12 @@ func GenerateTestCases() []TestCase {
 	return cases
 }
 
-// GenerateTestVectorString creates a string representation for comparison
+// GenerateTestVectorString creates a string representation for comparison.
 func GenerateTestVectorString(input string, tokens []int) string {
 	return fmt.Sprintf(`{"input":%q,"expected":%v}`, input, tokens)
 }
 
-// ValidateTokenization checks if tokenization is valid
+// ValidateTokenization checks if tokenization is valid.
 func ValidateTokenization(input string, tokens []string) error {
 	// Reconstruct the input from tokens
 	reconstructed := strings.Join(tokens, "")
