@@ -7,8 +7,9 @@ before:
 
 builds:
   - id: tokenizer
-    main: ./cmd/tokenizer
+    main: ./cmd/tokenizer/
     binary: tokenizer
+    dir: .
     env:
       - CGO_ENABLED=0
     goos:
