@@ -156,18 +156,18 @@ release:
     tokenizer completion fish > ~/.config/fish/completions/tokenizer.fish
     ```
 
-# Homebrew tap configuration
-brews:
+# Homebrew cask configuration (new approach for pre-built binaries)
+homebrew_casks:
   - repository:
       owner: agentstation
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     
-    # Formula name
+    # Cask name
     name: tokenizer
     
-    # Directory inside the repository
-    directory: Formula
+    # Directory inside the repository (default is Casks)
+    directory: Casks
     
     # Git commit information
     commit_author:
@@ -185,85 +185,37 @@ brews:
     # License
     license: "MIT"
     
-    # Skip upload if version exists
-    skip_upload: false
+    # Binary name (extracted from archive)
+    binary: tokenizer
     
-    # Use pre-built binaries (bottles) instead of building from source
-    download_strategy: CurlDownloadStrategy
+    # Conflicts with old formula (for migration)
+    conflicts:
+      - formula: tokenizer
     
-    # Dependencies
-    dependencies:
-      - name: go
-        type: build
-        version: "1.24"
+    # Post-install hook for unsigned binaries (macOS)
+    hooks:
+      post:
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tokenizer"], sudo: false
+          end
     
-    # Custom install block
-    install: |
-      if build.bottle?
-        bin.install "tokenizer"
-      else
-        # Build from source with version information
-        # Note: buildDate is the actual build time (now), not the commit date
-        ldflags = %W[
-          -s -w
-          -X main.version=#{version}
-          -X main.commit={{ .ShortCommit }}
-          -X main.buildDate=#{Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")}
-          -X main.goVersion=#{Formula["go"].version}
-          -X main.builtBy=homebrew
-        ]
-        system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/tokenizer"
-      end
-      
-      # Install documentation
-      doc.install "README.md", "LICENSE", "CLAUDE.md"
-      doc.install "llama3/README.md" => "llama3-README.md"
-      doc.install "llama3/IMPLEMENTATION.md" => "llama3-IMPLEMENTATION.md"
-      
-      # Install examples if they exist
-      if Dir.exist?("examples")
-        pkgshare.install "examples"
-      end
+    # Shell completions
+    completions:
+      bash: 
+        completion: |
+          output = Utils.safe_popen_read("#{staged_path}/tokenizer", "completion", "bash")
+          (bash_completion/"tokenizer").write output
+      zsh:
+        completion: |
+          output = Utils.safe_popen_read("#{staged_path}/tokenizer", "completion", "zsh")
+          (zsh_completion/"_tokenizer").write output
+      fish:
+        completion: |
+          output = Utils.safe_popen_read("#{staged_path}/tokenizer", "completion", "fish")
+          (fish_completion/"tokenizer.fish").write output
     
-    # Test block
-    test: |
-      # Test version command
-      output = shell_output("#{bin}/tokenizer version")
-      assert_match version.to_s, output
-      assert_match "commit:", output
-      assert_match "built:", output
-      assert_match "go version:", output
-      
-      # Test help output
-      assert_match "Usage:", shell_output("#{bin}/tokenizer --help")
-      assert_match "Available Commands:", shell_output("#{bin}/tokenizer --help")
-      
-      # Test llama3 subcommand
-      assert_match "llama3", shell_output("#{bin}/tokenizer --help")
-      assert_match "encode", shell_output("#{bin}/tokenizer llama3 --help")
-      
-      # Test encoding
-      output = shell_output("#{bin}/tokenizer llama3 encode 'Hello, world!'")
-      assert_match "128000", output # begin_of_text token
-      assert_match "9906", output   # "Hello" token
-      assert_match "128001", output # end_of_text token
-      
-      # Test decoding
-      output = shell_output("#{bin}/tokenizer llama3 decode 128000 9906 11 1917 0 128001")
-      assert_match "Hello", output
-      assert_match "world", output
-      
-      # Test info command
-      output = shell_output("#{bin}/tokenizer llama3 info")
-      assert_match "Vocabulary Size: 128256", output
-      assert_match "Regular Tokens: 128000", output
-      assert_match "Special Tokens: 256", output
-      
-      # Test piping
-      output = pipe_output("#{bin}/tokenizer llama3 encode", "Test input")
-      assert_match "128000", output # begin_of_text token
-    
-    # Custom caveats (simplified from the manual formula)
+    # Custom caveats
     caveats: |
       Tokenizer has been installed! 🚀
 
@@ -272,6 +224,11 @@ brews:
         tokenizer llama3 decode 128000 9906 128001  # Decode tokens to text
         tokenizer llama3 info                       # Show tokenizer info
         tokenizer --help                            # Show all commands
+
+      Shell completions have been installed to:
+        Bash: #{HOMEBREW_PREFIX}/etc/bash_completion.d
+        Zsh:  #{HOMEBREW_PREFIX}/share/zsh/site-functions
+        Fish: #{HOMEBREW_PREFIX}/share/fish/vendor_completions.d
 
       Documentation: https://github.com/agentstation/tokenizer
 
