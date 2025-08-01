@@ -55,13 +55,13 @@ inputs.forEach(input => {
 
 	// Run the script
 	cmd := exec.Command("node", tmpFile) // #nosec G204 - tmpFile is safely constructed
-	output_bytes, err := cmd.Output()
+	outputBytes, err := cmd.Output()
 	if err != nil {
 		log.Fatalf("Failed to run JS script: %v", err)
 	}
 
 	// Write output
-	if err := os.WriteFile(*output, output_bytes, 0600); err != nil {
+	if err := os.WriteFile(*output, outputBytes, 0600); err != nil {
 		log.Fatalf("Failed to write output file: %v", err)
 	}
 

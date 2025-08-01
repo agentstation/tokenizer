@@ -17,6 +17,8 @@ linters:
       - "vendor/"
       - "scripts/"
       - "testdata/"
+      - "experiments/"
+      - "llama3/experiments/"
   
   enable:
     # Default linters

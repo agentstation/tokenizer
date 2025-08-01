@@ -327,7 +327,7 @@ func (s *scanner) hasTokenizationBoundary() bool {
 	return false
 }
 
-// isValidUTF8Ending checks if the buffer ends at a valid UTF-8 boundary
+// isValidUTF8Ending checks if the buffer ends at a valid UTF-8 boundary.
 func isValidUTF8Ending(buf []byte) bool {
 	if len(buf) == 0 {
 		return true
@@ -363,7 +363,7 @@ func isValidUTF8Ending(buf []byte) bool {
 	return expectedLen <= 1
 }
 
-// findLastCompleteUTF8 finds the last complete UTF-8 character boundary
+// findLastCompleteUTF8 finds the last complete UTF-8 character boundary.
 func findLastCompleteUTF8(buf []byte) int {
 	for i := len(buf) - 1; i >= 0 && i >= len(buf)-4; i-- {
 		b := buf[i]
