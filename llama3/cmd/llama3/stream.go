@@ -64,10 +64,10 @@ Input is read from stdin only.`,
 	return cmd
 }
 
-func runStream(_ *cobra.Command, args []string) error {
+func runStream(_ *cobra.Command, _ []string) error {
 
 	// Validate output format
-	if streamOutput != "space" && streamOutput != "newline" {
+	if streamOutput != outputFormatSpace && streamOutput != outputFormatNewline {
 		return fmt.Errorf("invalid output format %q: must be 'space' or 'newline'", streamOutput)
 	}
 
@@ -98,7 +98,7 @@ func runStream(_ *cobra.Command, args []string) error {
 		switch streamOutput {
 		case outputFormatNewline:
 			fmt.Println(token)
-		case "space":
+		case outputFormatSpace:
 			if !first {
 				fmt.Print(" ")
 			}

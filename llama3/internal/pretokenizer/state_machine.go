@@ -68,7 +68,7 @@ func Tokenize(text string) []string {
 
 	// Return token buffer to pool
 	if cap(sm.tokens) <= 1024 {
-		tokenBufPool.Put(sm.tokens[:0]) // #nosec - slice header is small, not worth pointer optimization
+		tokenBufPool.Put(sm.tokens[:0]) //nolint:staticcheck // slice header is small, not worth pointer optimization
 	}
 
 	// Return state machine to pool
@@ -76,25 +76,6 @@ func Tokenize(text string) []string {
 	putStateMachine(sm)
 
 	return result
-}
-
-// newStateMachine creates a new state machine for tokenizing the given text.
-// This function is primarily used for testing. In production, use Tokenize()
-// which uses pooled state machines for better performance.
-func newStateMachine(text string) *stateMachine {
-	return &stateMachine{
-		input:    []rune(text),
-		position: 0,
-		tokens:   make([]string, 0),
-	}
-}
-
-// tokenizeWithStateMachine processes the input according to the JS regex pattern.
-func (sm *stateMachine) tokenizeWithStateMachine() []string {
-	for sm.position < len(sm.input) {
-		sm.matchNext()
-	}
-	return sm.tokens
 }
 
 // matchNext tries to match the next token according to the pattern.

@@ -1,3 +1,4 @@
+// Package testing provides test vector generation utilities.
 package testing
 
 import (
@@ -15,7 +16,7 @@ type TestCase struct {
 
 // GenerateTestCases creates comprehensive test cases.
 func GenerateTestCases() []TestCase {
-	var cases []TestCase
+	cases := make([]TestCase, 0, 200) // Preallocate for typical test case count
 
 	// Edge cases
 	cases = append(cases, []TestCase{

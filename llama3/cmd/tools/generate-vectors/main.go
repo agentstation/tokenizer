@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 func main() {
@@ -54,8 +56,10 @@ inputs.forEach(input => {
 		}
 	}()
 
-	// Run the script
-	cmd := exec.Command("node", tmpFile) // #nosec G204 - tmpFile is safely constructed
+	// Run the script with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "node", tmpFile) // #nosec G204 - tmpFile is safely constructed
 	outputBytes, err := cmd.Output()
 	if err != nil {
 		log.Fatalf("Failed to run JS script: %v", err)

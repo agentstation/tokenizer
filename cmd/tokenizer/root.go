@@ -44,7 +44,7 @@ Common operations available for tokenizers:
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
-	Run: func(_ *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf("tokenizer version %s\n", version)
 		if commit != "none" {
 			fmt.Printf("  commit:     %s\n", commit)

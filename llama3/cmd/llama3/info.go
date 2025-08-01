@@ -26,7 +26,7 @@ configuration.`,
 	return cmd
 }
 
-func runInfo(_ *cobra.Command, args []string) error {
+func runInfo(_ *cobra.Command, _ []string) error {
 	// Initialize tokenizer
 	tokenizer, err := llama3.New()
 	if err != nil {
