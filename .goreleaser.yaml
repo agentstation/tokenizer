@@ -277,12 +277,13 @@ brews:
 
 # Docker image configuration
 dockers:
-  - id: tokenizer
+  - id: tokenizer-amd64
     ids:
       - tokenizer
+    goos: linux
+    goarch: amd64
     image_templates:
-      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}"
-      - "ghcr.io/agentstation/tokenizer:latest"
+      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}-amd64"
     dockerfile: Dockerfile
     use: buildx
     build_flag_templates:
@@ -294,4 +295,34 @@ dockers:
       - "--label=org.opencontainers.image.source=https://github.com/agentstation/tokenizer"
       - "--label=org.opencontainers.image.description=High-performance tokenizer implementations in Go with unified CLI"
       - "--label=org.opencontainers.image.licenses=MIT"
-      - "--platform=linux/amd64,linux/arm64"
+      - "--platform=linux/amd64"
+  - id: tokenizer-arm64
+    ids:
+      - tokenizer
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/agentstation/tokenizer"
+      - "--label=org.opencontainers.image.description=High-performance tokenizer implementations in Go with unified CLI"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/arm64"
+
+# Docker manifest for multi-arch support
+docker_manifests:
+  - name_template: "ghcr.io/agentstation/tokenizer:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}-amd64"
+      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/agentstation/tokenizer:latest"
+    image_templates:
+      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}-amd64"
+      - "ghcr.io/agentstation/tokenizer:{{ .Tag }}-arm64"
