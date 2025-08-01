@@ -12,7 +12,7 @@ import (
 
 // Internal utility functions and variables
 
-// Exposed encoding functions for backward compatibility
+// Exposed encoding functions for backward compatibility.
 var (
 	// encodeBytes converts UTF-8 bytes to the custom byte-level representation.
 	encodeBytes = encoding.EncodeBytes
@@ -21,12 +21,12 @@ var (
 	decodeTokenBytes = encoding.DecodeTokenBytes
 )
 
-// Special token handling
+// Special token handling.
 var (
-	// specialTokenRegex matches Llama 3 special tokens
+	// specialTokenRegex matches Llama 3 special tokens.
 	specialTokenRegex = tokens.SpecialTokenRegex
 
-	// optimisticSpecialTokenRegex matches any pattern that looks like a special token
+	// optimisticSpecialTokenRegex matches any pattern that looks like a special token.
 	optimisticSpecialTokenRegex = tokens.OptimisticSpecialTokenRegex
 )
 
@@ -426,7 +426,7 @@ func (t *Tokenizer) getMergeIdentifier(firstTokenID, secondTokenID int) string {
 	return t.tokens[firstTokenID] + " " + t.tokens[secondTokenID]
 }
 
-// Ensure Tokenizer implements Encoder and Decoder interfaces
+// Ensure Tokenizer implements Encoder and Decoder interfaces.
 var (
 	_ Encoder      = (*Tokenizer)(nil)
 	_ Decoder      = (*Tokenizer)(nil)

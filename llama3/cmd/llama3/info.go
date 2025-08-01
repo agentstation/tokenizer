@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newInfoCmd creates the info subcommand
+// newInfoCmd creates the info subcommand.
 func newInfoCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "info",

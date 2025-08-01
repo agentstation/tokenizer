@@ -28,7 +28,7 @@ type Scanner interface {
 // ScannerOption configures scanner behavior.
 type ScannerOption = scanner.Option
 
-// Scanner option functions - these are re-exported from the scanner package
+// Scanner option functions - these are re-exported from the scanner package.
 var (
 	// WithBufferSize sets the internal buffer size for reading.
 	// Default is 4096 bytes.
@@ -48,12 +48,12 @@ var (
 	}
 )
 
-// tokenizerAdapter adapts Tokenizer to the scanner.Tokenizer interface
+// tokenizerAdapter adapts Tokenizer to the scanner.Tokenizer interface.
 type tokenizerAdapter struct {
 	*Tokenizer
 }
 
-// Encode adapts the Encode method
+// Encode adapts the Encode method.
 func (ta *tokenizerAdapter) Encode(text string, opts *scanner.EncodeOptions) []int {
 	return ta.Tokenizer.Encode(text, &EncodeOptions{
 		BOS: opts.BOS,

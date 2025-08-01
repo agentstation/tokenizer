@@ -1070,7 +1070,7 @@ func TestCharacterClassification(t *testing.T) {
 	})
 }
 
-// Benchmark tests to ensure performance hasn't regressed
+// Benchmark tests to ensure performance hasn't regressed.
 func BenchmarkTokenizeLongText(b *testing.B) {
 	// Create a realistic long text
 	parts := []string{
@@ -1121,7 +1121,7 @@ func BenchmarkTokenizeWhitespaceHeavyTable(b *testing.B) {
 	}
 }
 
-// TestStateMachineJavaScriptCompatibility tests cases from JavaScript output
+// TestStateMachineJavaScriptCompatibility tests cases from JavaScript output.
 func TestStateMachineJavaScriptCompatibility(t *testing.T) {
 	testCases := []struct {
 		input    string

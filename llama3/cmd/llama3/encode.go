@@ -12,13 +12,13 @@ import (
 )
 
 var (
-	// Encode command flags
+	// Encode command flags.
 	encAddBOS bool
 	encAddEOS bool
 	encOutput string
 )
 
-// newEncodeCmd creates the encode subcommand
+// newEncodeCmd creates the encode subcommand.
 func newEncodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "encode [text]",

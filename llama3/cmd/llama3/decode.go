@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	// Decode command flags
+	// Decode command flags.
 	decSkipSpecial bool
 )
 
-// newDecodeCmd creates the decode subcommand
+// newDecodeCmd creates the decode subcommand.
 func newDecodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "decode [token_ids...]",

@@ -345,7 +345,7 @@ func TestLargeText(t *testing.T) {
 	}
 }
 
-// TestEncodeBytesMethod tests the EncodeBytes method
+// TestEncodeBytesMethod tests the EncodeBytes method.
 func TestEncodeBytesMethod(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -364,7 +364,7 @@ func TestEncodeBytesMethod(t *testing.T) {
 	}
 }
 
-// TestAppendTokensMethod tests the AppendTokens method
+// TestAppendTokensMethod tests the AppendTokens method.
 func TestAppendTokensMethod(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -405,7 +405,7 @@ func TestAppendTokensMethod(t *testing.T) {
 	})
 }
 
-// TestOptimisticCount tests the OptimisticCount method
+// TestOptimisticCount tests the OptimisticCount method.
 func TestOptimisticCount(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -444,7 +444,7 @@ func TestOptimisticCount(t *testing.T) {
 	}
 }
 
-// TestDecodeBytesMethod tests the DecodeBytes method
+// TestDecodeBytesMethod tests the DecodeBytes method.
 func TestDecodeBytesMethod(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	// bitsPerMergeID is the number of bits used to encode each merge ID
+	// bitsPerMergeID is the number of bits used to encode each merge ID.
 	bitsPerMergeID = 17
 )
 

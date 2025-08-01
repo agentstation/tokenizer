@@ -2,7 +2,7 @@ package llama3
 
 import "strings"
 
-// config holds configuration during tokenizer creation
+// config holds configuration during tokenizer creation.
 type config struct {
 	dataLoader    VocabularyDataLoader
 	specialTokens []string

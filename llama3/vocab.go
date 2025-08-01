@@ -103,7 +103,7 @@ func (f *fileVocabularySource) LoadMerges() (map[string]int, error) {
 	return merges, nil
 }
 
-// fileLoaderMarker is a placeholder that will be replaced with the actual file loader
+// fileLoaderMarker is a placeholder that will be replaced with the actual file loader.
 type fileLoaderMarker struct {
 	vocabPath  string
 	mergesPath string

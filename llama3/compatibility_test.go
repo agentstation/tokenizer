@@ -12,7 +12,7 @@ import (
 	testutils "github.com/agentstation/tokenizer/llama3/internal/testing"
 )
 
-// TestCompatibility runs comprehensive compatibility tests with 476 test cases
+// TestCompatibility runs comprehensive compatibility tests with 476 test cases.
 func TestCompatibility(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -96,7 +96,7 @@ func TestCompatibility(t *testing.T) {
 		float64(totalPassed)*100/float64(totalPassed+totalFailed))
 }
 
-// getJSTokenization gets tokenization results from JavaScript implementation
+// getJSTokenization gets tokenization results from JavaScript implementation.
 func getJSTokenization(inputs []string, jsPath string) ([][]int, error) {
 	// Create temporary JS file
 	tmpDir := os.TempDir()
@@ -134,7 +134,7 @@ console.log(JSON.stringify(results));
 	return results, nil
 }
 
-// compareTokens compares two token arrays
+// compareTokens compares two token arrays.
 func compareTokens(a, b []int) bool {
 	if len(a) != len(b) {
 		return false
@@ -147,7 +147,7 @@ func compareTokens(a, b []int) bool {
 	return true
 }
 
-// TestTokenizationProperties tests properties that should hold for all inputs
+// TestTokenizationProperties tests properties that should hold for all inputs.
 func TestTokenizationProperties(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -185,7 +185,7 @@ func TestTokenizationProperties(t *testing.T) {
 	}
 }
 
-// BenchmarkCases benchmarks various categories of inputs
+// BenchmarkCases benchmarks various categories of inputs.
 func BenchmarkCases(b *testing.B) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {

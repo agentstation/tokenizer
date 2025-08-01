@@ -7,10 +7,10 @@ import (
 )
 
 var (
-	// SpecialTokenRegex matches Llama 3 special tokens
+	// SpecialTokenRegex matches Llama 3 special tokens.
 	SpecialTokenRegex = regexp.MustCompile(`<\|(?:begin_of_text|end_of_text|start_header_id|end_header_id|eot_id|eom_id|python_tag|finetune_right_pad_id|reserved_special_token_(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-3][0-9]|24[0-7]))\|>`)
 
-	// OptimisticSpecialTokenRegex matches any pattern that looks like a special token
+	// OptimisticSpecialTokenRegex matches any pattern that looks like a special token.
 	OptimisticSpecialTokenRegex = regexp.MustCompile(`<\|[a-zA-Z0-9_]+\|>`)
 )
 

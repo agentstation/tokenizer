@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	// Stream command flags
+	// Stream command flags.
 	streamBufferSize int
 	streamMaxBuffer  int
 	streamAddBOS     bool
@@ -17,7 +17,7 @@ var (
 	streamOutput     string
 )
 
-// newStreamCmd creates the stream subcommand
+// newStreamCmd creates the stream subcommand.
 func newStreamCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stream",

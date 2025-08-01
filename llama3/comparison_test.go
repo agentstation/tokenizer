@@ -11,19 +11,19 @@ import (
 	"testing"
 )
 
-// ComparisonTestCase represents a test case for comparing Go and JS implementations
+// ComparisonTestCase represents a test case for comparing Go and JS implementations.
 type ComparisonTestCase struct {
 	Input    string `json:"input"`
 	Expected []int  `json:"expected"`
 }
 
-// toJSON converts a value to JSON string
+// toJSON converts a value to JSON string.
 func toJSON(v interface{}) string {
 	b, _ := json.Marshal(v)
 	return string(b)
 }
 
-// generateTestVectors creates a JavaScript file to generate test vectors
+// generateTestVectors creates a JavaScript file to generate test vectors.
 func generateTestVectors(testCases []string) ([]ComparisonTestCase, error) {
 	// Create temporary JS file
 	tmpDir := os.TempDir()
@@ -62,7 +62,7 @@ console.log(JSON.stringify(results, null, 2));
 	return results, nil
 }
 
-// TestComparisonWithJS compares Go implementation with JavaScript implementation
+// TestComparisonWithJS compares Go implementation with JavaScript implementation.
 func TestComparisonWithJS(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -208,7 +208,7 @@ func TestComparisonWithJS(t *testing.T) {
 	}
 }
 
-// TestComparisonFromFile tests using test vectors from a file
+// TestComparisonFromFile tests using test vectors from a file.
 func TestComparisonFromFile(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
@@ -270,7 +270,7 @@ func TestComparisonFromFile(t *testing.T) {
 	}
 }
 
-// generateTestVectorFile creates a file with test vectors for future use
+// generateTestVectorFile creates a file with test vectors for future use.
 func generateTestVectorFile(filename string, count int) error {
 	// Generate diverse test inputs
 	var inputs []string

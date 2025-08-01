@@ -5,22 +5,22 @@ import (
 	"fmt"
 )
 
-// Common errors
+// Common errors.
 var (
-	// ErrDataNotFound indicates that the tokenizer data files could not be found
+	// ErrDataNotFound indicates that the tokenizer data files could not be found.
 	ErrDataNotFound = errors.New("tokenizer data not found")
 
-	// ErrInvalidToken indicates an invalid token was provided
+	// ErrInvalidToken indicates an invalid token was provided.
 	ErrInvalidToken = errors.New("invalid token")
 
-	// ErrTokenNotFound indicates a token was not found in the vocabulary
+	// ErrTokenNotFound indicates a token was not found in the vocabulary.
 	ErrTokenNotFound = errors.New("token not found")
 
-	// ErrInvalidTokenID indicates an invalid token ID was provided
+	// ErrInvalidTokenID indicates an invalid token ID was provided.
 	ErrInvalidTokenID = errors.New("invalid token ID")
 )
 
-// DataError represents an error related to tokenizer data loading or processing
+// DataError represents an error related to tokenizer data loading or processing.
 type DataError struct {
 	Op   string // Operation that failed
 	Path string // File path if applicable
@@ -38,7 +38,7 @@ func (e *DataError) Unwrap() error {
 	return e.Err
 }
 
-// TokenError represents an error related to token operations
+// TokenError represents an error related to token operations.
 type TokenError struct {
 	Token   string // The token that caused the error
 	TokenID int    // The token ID if applicable
@@ -60,7 +60,7 @@ func (e *TokenError) Unwrap() error {
 	return e.Err
 }
 
-// ConfigError represents an error in tokenizer configuration
+// ConfigError represents an error in tokenizer configuration.
 type ConfigError struct {
 	Field string // Configuration field that has an error
 	Value any    // The invalid value
@@ -77,22 +77,22 @@ func (e *ConfigError) Unwrap() error {
 
 // Helper functions for creating errors
 
-// NewDataError creates a new DataError
+// NewDataError creates a new DataError.
 func NewDataError(op, path string, err error) error {
 	return &DataError{Op: op, Path: path, Err: err}
 }
 
-// NewTokenError creates a new TokenError
+// NewTokenError creates a new TokenError.
 func NewTokenError(op, token string, err error) error {
 	return &TokenError{Op: op, Token: token, Err: err}
 }
 
-// NewTokenIDError creates a new TokenError with a token ID
+// NewTokenIDError creates a new TokenError with a token ID.
 func NewTokenIDError(op string, tokenID int, err error) error {
 	return &TokenError{Op: op, TokenID: tokenID, Err: err}
 }
 
-// NewConfigError creates a new ConfigError
+// NewConfigError creates a new ConfigError.
 func NewConfigError(field string, value any, err error) error {
 	return &ConfigError{Field: field, Value: value, Err: err}
 }
