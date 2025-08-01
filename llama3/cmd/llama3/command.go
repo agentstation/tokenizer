@@ -2,6 +2,8 @@
 package llama3cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -31,8 +33,11 @@ Available commands:
   # Decode tokens
   tokenizer llama3 decode 128000 9906 11 1917 0 128001
   
-  # Stream from stdin
+  # Stream from stdin (explicit)
   cat large_file.txt | tokenizer llama3 stream
+  
+  # Stream from stdin (implicit - automatic)
+  cat large_file.txt | tokenizer llama3
   
   # Show tokenizer info
   tokenizer llama3 info`,
@@ -61,7 +66,15 @@ Available commands:
 				return encodeCmd.Execute()
 			}
 
-			// No args provided, show usage
+			// No args provided - check if stdin is piped
+			stat, _ := os.Stdin.Stat()
+			if (stat.Mode() & os.ModeCharDevice) == 0 {
+				// Data is being piped to stdin, use streaming mode
+				streamCmd := newStreamCmd()
+				return streamCmd.Execute()
+			}
+
+			// No args and no piped input, show usage
 			return cmd.Usage()
 		},
 	}
