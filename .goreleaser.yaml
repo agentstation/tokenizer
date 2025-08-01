@@ -4,8 +4,6 @@ before:
   hooks:
     - go mod tidy
     - go test ./...
-env:
-  - GO_VERSION={{ if index .Env "GO_VERSION" }}{{ .Env.GO_VERSION }}{{ else }}{{ .Runtime.Goversion }}{{ end }}
 
 builds:
   - id: tokenizer
