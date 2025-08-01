@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	
+	"github.com/agentstation/tokenizer/llama3/internal/pretokenizer"
+	testutils "github.com/agentstation/tokenizer/llama3/internal/testing"
 )
 
 // TestCompatibility runs comprehensive compatibility tests with 476 test cases
@@ -28,11 +31,11 @@ func TestCompatibility(t *testing.T) {
 	}
 
 	// Generate test cases
-	testCases := GenerateTestCases()
+	testCases := testutils.GenerateTestCases()
 	t.Logf("Running %d test cases", len(testCases))
 
 	// Group test cases by category for better reporting
-	categories := make(map[string][]TestCase)
+	categories := make(map[string][]testutils.TestCase)
 	for _, tc := range testCases {
 		categories[tc.Category] = append(categories[tc.Category], tc)
 	}
@@ -151,7 +154,7 @@ func TestTokenizationProperties(t *testing.T) {
 		t.Skip("Skipping tests: Llama 3 data not available")
 	}
 
-	testCases := GenerateTestCases()
+	testCases := testutils.GenerateTestCases()
 	opts := &EncodeOptions{BOS: false, EOS: false}
 
 	for _, tc := range testCases {
@@ -174,8 +177,8 @@ func TestTokenizationProperties(t *testing.T) {
 			}
 
 			// Property 3: No empty tokens in pretokenization
-			pretokens := Tokenize(tc.Input)
-			if err := ValidateTokenization(tc.Input, pretokens); err != nil {
+			pretokens := pretokenizer.Tokenize(tc.Input)
+			if err := testutils.ValidateTokenization(tc.Input, pretokens); err != nil {
 				t.Errorf("Invalid pretokenization for %q: %v", tc.Input, err)
 			}
 		})
@@ -189,7 +192,7 @@ func BenchmarkCases(b *testing.B) {
 		b.Skip("Skipping benchmark: Llama 3 data not available")
 	}
 
-	testCases := GenerateTestCases()
+	testCases := testutils.GenerateTestCases()
 	categories := make(map[string][]string)
 
 	for _, tc := range testCases {

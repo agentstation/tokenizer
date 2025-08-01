@@ -1,26 +1,37 @@
-package llama3
+package encoding
 
 import (
 	"strings"
 )
 
+// Constants for byte mapping ranges
+const (
+	asciiPrintableStart = '!'           // 33
+	asciiPrintableEnd   = '~'           // 126
+	extendedAsciiStart1 = '\u00A1'      // 161
+	extendedAsciiEnd1   = '\u00AC'      // 172
+	extendedAsciiStart2 = '\u00AE'      // 174
+	extendedAsciiEnd2   = '\u00FF'      // 255
+	unicodeOffset       = 256
+)
+
 var (
-	// bytesToUnicode maps byte values to unicode characters for encoding
-	bytesToUnicode map[byte]rune
-	// unicodeToBytes maps unicode characters back to byte values for decoding
-	unicodeToBytes map[rune]byte
+	// BytesToUnicode maps byte values to unicode characters for encoding
+	BytesToUnicode map[byte]rune
+	// UnicodeToBytes maps unicode characters back to byte values for decoding
+	UnicodeToBytes map[rune]byte
 )
 
 func init() {
 	// Initialize byte-to-unicode mappings
-	bytesToUnicode, unicodeToBytes = createByteMappings()
+	BytesToUnicode, UnicodeToBytes = CreateByteMappings()
 }
 
-// createByteMappings creates the byte-to-unicode and unicode-to-byte mappings
+// CreateByteMappings creates the byte-to-unicode and unicode-to-byte mappings
 // following the same logic as the JavaScript implementation. This creates a
 // reversible mapping that allows encoding arbitrary bytes as valid Unicode
 // characters for tokenization.
-func createByteMappings() (map[byte]rune, map[rune]byte) {
+func CreateByteMappings() (map[byte]rune, map[rune]byte) {
 	bs := make([]int, 0, 256)
 
 	// Add printable ASCII range
@@ -67,15 +78,15 @@ func createByteMappings() (map[byte]rune, map[rune]byte) {
 	return bToU, uToB
 }
 
-// encodeBytes converts UTF-8 bytes to the custom byte-level representation.
+// EncodeBytes converts UTF-8 bytes to the custom byte-level representation.
 // Each byte is mapped to a specific Unicode character to ensure all byte
 // sequences can be represented as valid text for tokenization.
-func encodeBytes(data []byte) string {
+func EncodeBytes(data []byte) string {
 	var sb strings.Builder
 	sb.Grow(len(data))
 
 	for _, b := range data {
-		if r, ok := bytesToUnicode[b]; ok {
+		if r, ok := BytesToUnicode[b]; ok {
 			sb.WriteRune(r)
 		}
 	}
@@ -83,14 +94,14 @@ func encodeBytes(data []byte) string {
 	return sb.String()
 }
 
-// decodeTokenBytes converts a token string back to UTF-8 bytes.
-// This reverses the encoding performed by encodeBytes, restoring the
+// DecodeTokenBytes converts a token string back to UTF-8 bytes.
+// This reverses the encoding performed by EncodeBytes, restoring the
 // original byte sequence from the Unicode representation.
-func decodeTokenBytes(token string) []byte {
+func DecodeTokenBytes(token string) []byte {
 	result := make([]byte, 0, len(token))
 
 	for _, r := range token {
-		if b, ok := unicodeToBytes[r]; ok {
+		if b, ok := UnicodeToBytes[r]; ok {
 			result = append(result, b)
 		}
 	}

@@ -143,6 +143,7 @@ build/
 dist/
 bin/
 cmd/example/example
+tokenizer
 
 # Temporary files
 *.tmp

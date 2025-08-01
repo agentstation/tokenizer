@@ -1,4 +1,4 @@
-package llama3
+package tokens
 
 import (
 	"fmt"
@@ -6,21 +6,16 @@ import (
 	"strings"
 )
 
-const (
-	beginOfTextToken = "<|begin_of_text|>"
-	endOfTextToken   = "<|end_of_text|>"
-)
-
 var (
-	// specialTokenRegex matches Llama 3 special tokens
-	specialTokenRegex = regexp.MustCompile(`<\|(?:begin_of_text|end_of_text|start_header_id|end_header_id|eot_id|eom_id|python_tag|finetune_right_pad_id|reserved_special_token_(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-3][0-9]|24[0-7]))\|>`)
+	// SpecialTokenRegex matches Llama 3 special tokens
+	SpecialTokenRegex = regexp.MustCompile(`<\|(?:begin_of_text|end_of_text|start_header_id|end_header_id|eot_id|eom_id|python_tag|finetune_right_pad_id|reserved_special_token_(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-3][0-9]|24[0-7]))\|>`)
 
-	// optimisticSpecialTokenRegex matches any pattern that looks like a special token
-	optimisticSpecialTokenRegex = regexp.MustCompile(`<\|[a-zA-Z0-9_]+\|>`)
+	// OptimisticSpecialTokenRegex matches any pattern that looks like a special token
+	OptimisticSpecialTokenRegex = regexp.MustCompile(`<\|[a-zA-Z0-9_]+\|>`)
 )
 
-// getDefaultSpecialTokens returns all Llama 3 special tokens in order.
-func getDefaultSpecialTokens() []string {
+// GetDefaultSpecialTokens returns all Llama 3 special tokens in order.
+func GetDefaultSpecialTokens(specialTokenCount int) []string {
 	tokens := []string{
 		"<|begin_of_text|>",
 		"<|end_of_text|>",
@@ -43,13 +38,13 @@ func getDefaultSpecialTokens() []string {
 	return tokens
 }
 
-// isSpecialToken checks if a string is in the special token format.
-func isSpecialToken(token string) bool {
+// IsSpecialToken checks if a string is in the special token format.
+func IsSpecialToken(token string) bool {
 	return strings.HasPrefix(token, "<|") && strings.HasSuffix(token, "|>")
 }
 
-// splitBySpecialTokens splits text by special tokens while preserving the tokens.
-func splitBySpecialTokens(text string, regex *regexp.Regexp) []string {
+// SplitBySpecialTokens splits text by special tokens while preserving the tokens.
+func SplitBySpecialTokens(text string, regex *regexp.Regexp) []string {
 	if text == "" {
 		return []string{}
 	}

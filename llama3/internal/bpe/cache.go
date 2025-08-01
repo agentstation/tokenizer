@@ -1,12 +1,18 @@
-package llama3
+package bpe
 
 import (
 	"container/list"
 	"sync"
 )
 
+// Cache is the interface for caching BPE results.
+type Cache interface {
+	Get(key string) ([]int, bool)
+	Put(key string, value []int)
+}
+
 // lruCache implements a thread-safe LRU cache for BPE results.
-type lruCache struct {
+type LRUCache struct {
 	capacity int
 	items    map[string]*list.Element
 	lru      *list.List
@@ -19,18 +25,18 @@ type cacheEntry struct {
 	value []int
 }
 
-// newLRUCache creates a new LRU cache with the given capacity.
+// NewLRU creates a new LRU cache with the given capacity.
 // If capacity is 0, the cache is unlimited (falls back to simple map).
-func newLRUCache(capacity int) *lruCache {
-	return &lruCache{
+func NewLRU(capacity int) *LRUCache {
+	return &LRUCache{
 		capacity: capacity,
 		items:    make(map[string]*list.Element),
 		lru:      list.New(),
 	}
 }
 
-// get retrieves a value from the cache, promoting it to most recently used.
-func (c *lruCache) get(key string) ([]int, bool) {
+// Get retrieves a value from the cache, promoting it to most recently used.
+func (c *LRUCache) Get(key string) ([]int, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -42,8 +48,8 @@ func (c *lruCache) get(key string) ([]int, bool) {
 	return nil, false
 }
 
-// put adds or updates a value in the cache.
-func (c *lruCache) put(key string, value []int) {
+// Put adds or updates a value in the cache.
+func (c *LRUCache) Put(key string, value []int) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -69,22 +75,29 @@ func (c *lruCache) put(key string, value []int) {
 	}
 }
 
-// simpleCache wraps a regular map for unlimited caching (backward compatibility).
-type simpleCache struct {
+// SimpleCache wraps a regular map for unlimited caching (backward compatibility).
+type SimpleCache struct {
 	cache map[string][]int
 	mu    sync.RWMutex
 }
 
-// get retrieves a value from the simple cache.
-func (c *simpleCache) get(key string) ([]int, bool) {
+// NewSimple creates a new simple cache.
+func NewSimple() *SimpleCache {
+	return &SimpleCache{
+		cache: make(map[string][]int),
+	}
+}
+
+// Get retrieves a value from the simple cache.
+func (c *SimpleCache) Get(key string) ([]int, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	val, ok := c.cache[key]
 	return val, ok
 }
 
-// put adds a value to the simple cache.
-func (c *simpleCache) put(key string, value []int) {
+// Put adds a value to the simple cache.
+func (c *SimpleCache) Put(key string, value []int) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.cache[key] = value

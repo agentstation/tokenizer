@@ -76,11 +76,6 @@
 //	    llama3.WithSpecialTokens(customSpecialTokens),
 //	)
 //
-//	// Load from files
-//	tokenizer, err := llama3.New(
-//	    llama3.WithDataFiles("vocab.txt", "merges.txt"),
-//	)
-//
 // # State Machine
 //
 // The pre-tokenization stage uses a custom state machine that exactly replicates
@@ -109,6 +104,29 @@
 //   - State machines are pooled and reused
 //   - Token buffers are pooled (up to 1024 capacity)
 //   - BPE merge operations use a priority queue
+//
+// Pool Usage Patterns:
+//
+// 1. State Machine Pooling (stateMachinePool)
+//    - Reuses StateMachine instances across tokenization calls
+//    - Reduces allocations for the input rune slice and token slice
+//    - Pool never limits the number of state machines
+//    - State machines are reset before reuse
+//
+// 2. Token Buffer Pooling (tokenBufPool)
+//    - Reuses []string slices for collecting tokens
+//    - Initial capacity: 64 tokens
+//    - Maximum pooled capacity: 1024 tokens
+//    - Buffers exceeding the maximum are not returned to the pool
+//
+// Memory Lifecycle:
+//
+// 1. Allocation: First call creates new instance, subsequent calls may reuse
+// 2. Usage: Instance is used for one tokenization operation
+// 3. Return to Pool: References cleared, slices reset, large buffers discarded
+// 4. Garbage Collection: Go runtime may clear pools during GC
+//
+// Performance: Benchmarks show 36% memory reduction with pooling
 //
 // # Error Handling
 //

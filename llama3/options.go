@@ -1,40 +1,25 @@
 package llama3
 
+import "strings"
+
+// config holds configuration during tokenizer creation
+type config struct {
+	dataLoader    VocabularyDataLoader
+	specialTokens []string
+	cacheSize     int
+}
+
 // Option is a functional option for configuring a Tokenizer.
-type Option func(*tokenizerConfig) error
-
-// WithVocabulary sets custom vocabulary data for the tokenizer.
-// The vocabulary should be base64-encoded.
-func WithVocabulary(vocabBase64 string) Option {
-	return func(cfg *tokenizerConfig) error {
-		if vocabBase64 == "" {
-			return NewConfigError("vocabulary", "empty string", ErrInvalidToken)
-		}
-		cfg.vocabBase64 = vocabBase64
-		return nil
-	}
-}
-
-// WithMerges sets custom merge data for the tokenizer.
-// The merges should be base64-encoded binary data.
-func WithMerges(mergesBinary string) Option {
-	return func(cfg *tokenizerConfig) error {
-		if mergesBinary == "" {
-			return NewConfigError("merges", "empty string", ErrInvalidToken)
-		}
-		cfg.mergesBinary = mergesBinary
-		return nil
-	}
-}
+type Option func(*config) error
 
 // WithSpecialTokens sets custom special tokens for the tokenizer.
 // If nil, the default Llama 3 special tokens will be used.
 func WithSpecialTokens(tokens []string) Option {
-	return func(cfg *tokenizerConfig) error {
-		// Validate special tokens
+	return func(cfg *config) error {
+		// Validate special tokens - they must match the <|...|> pattern
 		for i, token := range tokens {
-			if !isSpecialToken(token) {
-				return NewConfigError("special_tokens", token, 
+			if len(token) < 5 || !strings.HasPrefix(token, "<|") || !strings.HasSuffix(token, "|>") {
+				return NewConfigError("special_tokens", token,
 					NewTokenError("validate", token, ErrInvalidToken))
 			}
 			// Check for duplicates
@@ -53,7 +38,7 @@ func WithSpecialTokens(tokens []string) Option {
 // WithCacheSize sets the maximum size of the BPE cache.
 // Set to 0 to disable caching. Default is unlimited.
 func WithCacheSize(size int) Option {
-	return func(cfg *tokenizerConfig) error {
+	return func(cfg *config) error {
 		if size < 0 {
 			return NewConfigError("cache_size", size, ErrInvalidToken)
 		}
@@ -62,16 +47,28 @@ func WithCacheSize(size int) Option {
 	}
 }
 
-// WithDataFiles loads vocabulary and merge data from files.
-func WithDataFiles(vocabPath, mergesPath string) Option {
-	return func(cfg *tokenizerConfig) error {
-		if err := LoadDataFromFiles(vocabPath, mergesPath); err != nil {
-			return err
+// WithDataLoader sets a custom data loader for the tokenizer.
+// This allows loading vocabulary and merges from custom sources.
+func WithDataLoader(loader VocabularyDataLoader) Option {
+	return func(cfg *config) error {
+		if loader == nil {
+			return NewConfigError("data_loader", nil, ErrInvalidToken)
 		}
-		// The LoadDataFromFiles sets global defaults, so we need to capture them
-		cfg.vocabBase64 = defaultVocabBase64
-		cfg.mergesBinary = defaultMergesBinary
+		cfg.dataLoader = loader
 		return nil
 	}
 }
 
+// WithDataFiles loads vocabulary and merges from files instead of embedded data.
+// The vocabulary file should contain base64-encoded vocabulary data.
+// The merges file should contain base64-encoded binary merge data.
+func WithDataFiles(vocabPath, mergesPath string) Option {
+	return func(cfg *config) error {
+		// This will be handled in tokenizer initialization
+		cfg.dataLoader = &fileLoaderMarker{
+			vocabPath:  vocabPath,
+			mergesPath: mergesPath,
+		}
+		return nil
+	}
+}

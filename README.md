@@ -1,8 +1,31 @@
 # Tokenizer
 
-A collection of tokenizer implementations in Go.
+A collection of tokenizer implementations in Go with a unified CLI interface.
 
-## Packages
+## CLI Tool
+
+Install the tokenizer CLI:
+
+```bash
+go install github.com/agentstation/tokenizer/cmd/tokenizer@latest
+```
+
+Quick usage:
+
+```bash
+# Encode text
+tokenizer llama3 encode "Hello, world!"
+
+# Decode tokens
+tokenizer llama3 decode 128000 9906 11 1917 0 128001
+
+# Stream large files
+cat document.txt | tokenizer llama3 stream
+```
+
+See [cmd/tokenizer/README.md](cmd/tokenizer/README.md) for full CLI documentation.
+
+## Library Packages
 
 ### llama3
 

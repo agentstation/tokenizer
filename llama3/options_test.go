@@ -9,7 +9,7 @@ func TestNewWithOptions(t *testing.T) {
 	tokenizer, err := New(
 		WithCacheSize(100),
 	)
-	
+
 	// Should succeed if data files are available
 	if err == nil && tokenizer != nil {
 		if tokenizer.cacheSize != 100 {
@@ -52,9 +52,9 @@ func TestWithSpecialTokens(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			opt := WithSpecialTokens(tt.tokens)
-			tempConfig := &tokenizerConfig{}
+			tempConfig := &config{}
 			err := opt(tempConfig)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WithSpecialTokens() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -76,9 +76,9 @@ func TestWithCacheSize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			opt := WithCacheSize(tt.size)
-			tempConfig := &tokenizerConfig{}
+			tempConfig := &config{}
 			err := opt(tempConfig)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WithCacheSize() error = %v, wantErr %v", err, tt.wantErr)
 			}

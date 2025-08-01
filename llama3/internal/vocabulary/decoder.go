@@ -1,27 +1,23 @@
-package llama3
+package vocabulary
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strings"
 )
 
-// Note: In production, these would contain the actual base64-encoded data.
-// For now, we'll load them from external files or embed them using go:embed.
-
-var (
-	// defaultVocabBase64 contains the base64-encoded vocabulary data
-	defaultVocabBase64 = "" // This will be populated from file or embed
-
-	// defaultMergesBinary contains the base64-encoded compressed merge data
-	defaultMergesBinary = "" // This will be populated from file or embed
+const (
+	// bitsPerMergeID is the number of bits used to encode each merge ID
+	bitsPerMergeID = 17
 )
 
-// decodeVocabulary decodes the base64-encoded vocabulary data.
-func decodeVocabulary(vocabBase64 string) ([]string, error) {
+// DecodeVocabulary decodes the base64-encoded vocabulary data.
+// Returns a slice of tokens indexed by their token ID.
+func DecodeVocabulary(vocabBase64 string) ([]string, error) {
 	// Decode base64
 	decoded, err := base64.StdEncoding.DecodeString(vocabBase64)
 	if err != nil {
-		return nil, NewDataError("decode base64", "vocabulary", err)
+		return nil, fmt.Errorf("decode vocabulary base64: %w", err)
 	}
 
 	// Split by newlines to get individual tokens
@@ -39,16 +35,18 @@ func decodeVocabulary(vocabBase64 string) ([]string, error) {
 	return result, nil
 }
 
-// decompressMerges decompresses the binary merge data.
-func (t *Tokenizer) decompressMerges(mergesBinary string) (map[string]int, error) {
+// DecompressMergeRules decompresses the base64-encoded merge data.
+// Returns a map of merge identifiers to their priorities.
+// The getMergeIdentifier function should combine two token IDs into a merge identifier string.
+func DecompressMergeRules(mergesBinary string, vocabByID []string, getMergeIdentifier func(int, int) string) (map[string]int, error) {
 	// Decode base64
 	decoded, err := base64.StdEncoding.DecodeString(mergesBinary)
 	if err != nil {
-		return nil, NewDataError("decode base64", "merges", err)
+		return nil, fmt.Errorf("decode merges base64: %w", err)
 	}
 
 	// Each merge is represented by two 17-bit integers packed into bytes
-	tokenIDs := unpack17BitIntegers(decoded)
+	tokenIDs := unpackTokenPairIDs(decoded)
 
 	// Create merge map
 	merges := make(map[string]int, len(tokenIDs)/2)
@@ -60,11 +58,11 @@ func (t *Tokenizer) decompressMerges(mergesBinary string) (map[string]int, error
 		id1 := tokenIDs[i]
 		id2 := tokenIDs[i+1]
 
-		if id1 >= len(t.vocabByID) || id2 >= len(t.vocabByID) {
+		if id1 >= len(vocabByID) || id2 >= len(vocabByID) {
 			continue // Skip invalid token IDs
 		}
 
-		mergeIdentifier := t.getMergeIdentifier(id1, id2)
+		mergeIdentifier := getMergeIdentifier(id1, id2)
 		// Priority is based on position in the merge list
 		merges[mergeIdentifier] = i/2 + 1
 	}
@@ -72,8 +70,9 @@ func (t *Tokenizer) decompressMerges(mergesBinary string) (map[string]int, error
 	return merges, nil
 }
 
-// unpack17BitIntegers unpacks 17-bit integers from a byte array.
-func unpack17BitIntegers(data []byte) []int {
+// unpackTokenPairIDs unpacks 17-bit integers from a byte array.
+// This is used to decode the compressed merge data where each pair represents token IDs.
+func unpackTokenPairIDs(data []byte) []int {
 	if len(data) == 0 {
 		return []int{}
 	}

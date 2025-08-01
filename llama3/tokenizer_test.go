@@ -2,204 +2,312 @@ package llama3
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
-// Note: These tests use mock data. In production, you would load the actual
-// Llama 3 vocabulary and merge data files.
-
-func TestEncodeDecodeBasic(t *testing.T) {
-	// Note: These tests would require loading actual Llama 3 data
-	// For now, we'll skip them in CI unless data is available
+func TestTokenizerEncode(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
 		t.Skip("Skipping tests: Llama 3 data not available")
 	}
 
-	// This test suite ports all the tests from the JavaScript implementation
-	tests := []struct {
-		name       string
-		input      string
-		expected   []int
-		encodeOpts *EncodeOptions
-		skipDecode bool
+	testGroups := map[string][]struct {
+		name     string
+		input    string
+		expected []int
+		opts     *EncodeOptions
 	}{
-		// Simple test cases
+		"basic": {
+			{
+				name:     "simple_word",
+				input:    "grabbed",
+				expected: []int{59312, 2788},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "word_with_space",
+				input:    " grabbed",
+				expected: []int{30418},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "multiple_spaces",
+				input:    "           grabbed",
+				expected: []int{1881, 30418},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "official_test_sentence",
+				input:    "This is a test sentence.",
+				expected: []int{2028, 374, 264, 1296, 11914, 13},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+		},
+		"whitespace": {
+			{
+				name:     "newline",
+				input:    "\n",
+				expected: []int{198},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "space_newline",
+				input:    " \n",
+				expected: []int{720},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "tabs",
+				input:    "\ttabs\t\t\t\tout here",
+				expected: []int{3324, 3518, 573, 14294, 1618},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+		},
+		"unicode": {
+			{
+				name:     "chinese_in_vocab",
+				input:    "镇",
+				expected: []int{104643},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "emoji_not_in_vocab",
+				input:    "🦙",
+				expected: []int{9468, 99, 247},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+			{
+				name:     "mixed_utf8",
+				input:    "🦙Ꙋ",
+				expected: []int{9468, 99, 247, 166, 247, 232},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+		},
+		"options": {
+			{
+				name:     "with_bos_eos",
+				input:    "I",
+				expected: []int{128000, 40, 128001},
+				opts:     &EncodeOptions{BOS: true, EOS: true},
+			},
+			{
+				name:     "bos_only",
+				input:    "I",
+				expected: []int{128000, 40},
+				opts:     &EncodeOptions{BOS: true, EOS: false},
+			},
+			{
+				name:     "eos_only",
+				input:    "I",
+				expected: []int{40, 128001},
+				opts:     &EncodeOptions{BOS: false, EOS: true},
+			},
+			{
+				name:     "default_opts",
+				input:    "I",
+				expected: []int{128000, 40, 128001},
+				opts:     nil, // Will use defaults
+			},
+			{
+				name:     "empty_with_bos_eos",
+				input:    "",
+				expected: []int{128000, 128001},
+				opts:     &EncodeOptions{BOS: true, EOS: true},
+			},
+		},
+		"special_tokens": {
+			{
+				name:     "special_tokens_in_text",
+				input:    "<|start_header_id|>This text has special tokens<|eom_id|> in the middle of it.<|end_header_id|><|eot_id|>",
+				expected: []int{128006, 2028, 1495, 706, 3361, 11460, 128008, 304, 279, 6278, 315, 433, 13, 128007, 128009},
+				opts:     &EncodeOptions{BOS: false, EOS: false},
+			},
+		},
+	}
+
+	for groupName, tests := range testGroups {
+		t.Run(groupName, func(t *testing.T) {
+			for _, tt := range tests {
+				t.Run(tt.name, func(t *testing.T) {
+					got := tokenizer.Encode(tt.input, tt.opts)
+					if !reflect.DeepEqual(got, tt.expected) {
+						t.Errorf("Encode(%q) = %v, want %v", tt.input, got, tt.expected)
+					}
+
+					// Test round-trip encoding/decoding for non-special cases
+					if groupName != "options" && groupName != "special_tokens" && tt.opts != nil && !tt.opts.BOS && !tt.opts.EOS {
+						decoded := tokenizer.Decode(got)
+						if decoded != tt.input {
+							t.Errorf("Decode(Encode(%q)) = %q, want %q", tt.input, decoded, tt.input)
+						}
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestTokenizerDecode(t *testing.T) {
+	tokenizer, err := New()
+	if err != nil || tokenizer.VocabSize() == 0 {
+		t.Skip("Skipping tests: Llama 3 data not available")
+	}
+
+	tests := []struct {
+		name     string
+		input    []int
+		expected string
+	}{
 		{
-			name:       "simple word",
-			input:      "grabbed",
-			expected:   []int{59312, 2788},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
+			name:     "simple_text",
+			input:    []int{9906, 1917, 0},
+			expected: "Hello world!",
 		},
 		{
-			name:       "word with space",
-			input:      " grabbed",
-			expected:   []int{30418},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
+			name:     "with_special_tokens",
+			input:    []int{128000, 40, 128001},
+			expected: "<|begin_of_text|>I<|end_of_text|>",
 		},
 		{
-			name:       "multiple spaces",
-			input:      "           grabbed",
-			expected:   []int{1881, 30418},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
-		},
-		// Linebreak and tab handling
-		{
-			name:       "newline",
-			input:      "\n",
-			expected:   []int{198},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
+			name:     "empty_input",
+			input:    []int{},
+			expected: "",
 		},
 		{
-			name:       "space newline",
-			input:      " \n",
-			expected:   []int{720},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
+			name:     "invalid_token_ids",
+			input:    []int{-1, 999999999},
+			expected: "",
 		},
 		{
-			name:       "tabs",
-			input:      "\ttabs\t\t\t\tout here",
-			expected:   []int{3324, 3518, 573, 14294, 1618},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
-		},
-		// UTF-8 characters
-		{
-			name:       "chinese character in vocab",
-			input:      "镇",
-			expected:   []int{104643},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
-		},
-		{
-			name:       "emoji not in vocab",
-			input:      "🦙",
-			expected:   []int{9468, 99, 247},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
-		},
-		{
-			name:       "mixed UTF-8",
-			input:      "🦙Ꙋ",
-			expected:   []int{9468, 99, 247, 166, 247, 232},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
-		},
-		// Official test case
-		{
-			name:       "official test sentence",
-			input:      "This is a test sentence.",
-			expected:   []int{2028, 374, 264, 1296, 11914, 13},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
-		},
-		// Encoder options tests
-		{
-			name:       "with BOS and EOS",
-			input:      "I",
-			expected:   []int{128000, 40, 128001},
-			encodeOpts: &EncodeOptions{BOS: true, EOS: true},
-		},
-		{
-			name:       "with BOS only",
-			input:      "I",
-			expected:   []int{128000, 40},
-			encodeOpts: &EncodeOptions{BOS: true, EOS: false},
-		},
-		{
-			name:       "with EOS only",
-			input:      "I",
-			expected:   []int{40, 128001},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: true},
-		},
-		{
-			name:       "empty with BOS and EOS",
-			input:      "",
-			expected:   []int{128000, 128001},
-			encodeOpts: &EncodeOptions{BOS: true, EOS: true},
-		},
-		{
-			name:       "default options",
-			input:      "I",
-			expected:   []int{128000, 40, 128001},
-			encodeOpts: nil, // Will use defaults
-		},
-		// Special tokens
-		{
-			name:       "special tokens in text",
-			input:      "<|start_header_id|>This text has special tokens<|eom_id|> in the middle of it.<|end_header_id|><|eot_id|>",
-			expected:   []int{128006, 2028, 1495, 706, 3361, 11460, 128008, 304, 279, 6278, 315, 433, 13, 128007, 128009},
-			encodeOpts: &EncodeOptions{BOS: false, EOS: false},
+			name:     "special_token_ids",
+			input:    []int{128000, 128006, 128004, 128008, 128010},
+			expected: "<|begin_of_text|><|start_header_id|><|finetune_right_pad_id|><|eom_id|><|python_tag|>",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test encoding
-			got := tokenizer.Encode(tt.input, tt.encodeOpts)
-			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("Encode() = %v, want %v", got, tt.expected)
+			got := tokenizer.Decode(tt.input)
+			if got != tt.expected {
+				t.Errorf("Decode(%v) = %q, want %q", tt.input, got, tt.expected)
 			}
+		})
+	}
+}
 
-			// Test decoding (unless explicitly skipped)
-			if !tt.skipDecode && tt.encodeOpts != nil && !tt.encodeOpts.BOS && !tt.encodeOpts.EOS {
-				decoded := tokenizer.Decode(got)
-				if decoded != tt.input {
-					t.Errorf("Decode() = %q, want %q", decoded, tt.input)
+func TestTokenizerSpecialTokens(t *testing.T) {
+	tokenizer, err := New()
+	if err != nil || tokenizer.VocabSize() == 0 {
+		t.Skip("Skipping tests: Llama 3 data not available")
+	}
+
+	tests := []struct {
+		name        string
+		token       string
+		wantID      int
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:    "valid_begin_of_text",
+			token:   "<|begin_of_text|>",
+			wantID:  128000,
+			wantErr: false,
+		},
+		{
+			name:    "valid_end_of_text",
+			token:   "<|end_of_text|>",
+			wantID:  128001,
+			wantErr: false,
+		},
+		{
+			name:        "invalid_format",
+			token:       "not_a_special_token",
+			wantErr:     true,
+			errContains: "invalid token",
+		},
+		{
+			name:        "unknown_special_token",
+			token:       "<|unknown_token|>",
+			wantErr:     true,
+			errContains: "not found",
+		},
+		{
+			name:        "empty_token",
+			token:       "",
+			wantErr:     true,
+			errContains: "invalid token",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotID, err := tokenizer.GetSpecialTokenID(tt.token)
+			
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("GetSpecialTokenID(%q) error = nil, wantErr %v", tt.token, tt.wantErr)
+					return
+				}
+				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
+					t.Errorf("GetSpecialTokenID(%q) error = %v, want error containing %q", tt.token, err, tt.errContains)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("GetSpecialTokenID(%q) error = %v, wantErr %v", tt.token, err, tt.wantErr)
+					return
+				}
+				if gotID != tt.wantID {
+					t.Errorf("GetSpecialTokenID(%q) = %d, want %d", tt.token, gotID, tt.wantID)
 				}
 			}
 		})
 	}
 }
 
-func TestSpecialTokens(t *testing.T) {
+func TestTokenizerProperties(t *testing.T) {
 	tokenizer, err := New()
 	if err != nil || tokenizer.VocabSize() == 0 {
 		t.Skip("Skipping tests: Llama 3 data not available")
 	}
 
-	specialTokenTests := []struct {
-		tokenID  int
-		expected string
-	}{
-		{128000, "<|begin_of_text|>"},
-		{128006, "<|start_header_id|>"},
-		{128004, "<|finetune_right_pad_id|>"},
-		{128008, "<|eom_id|>"},
-		{128010, "<|python_tag|>"},
-	}
+	t.Run("vocabulary_size", func(t *testing.T) {
+		vocabSize := tokenizer.VocabSize()
+		
+		if vocabSize != totalVocabSize {
+			t.Errorf("VocabSize() = %d, want %d", vocabSize, totalVocabSize)
+		}
+	})
 
-	for _, tt := range specialTokenTests {
-		t.Run(tt.expected, func(t *testing.T) {
-			decoded := tokenizer.Decode([]int{tt.tokenID})
-			if decoded != tt.expected {
-				t.Errorf("Decode([%d]) = %q, want %q", tt.tokenID, decoded, tt.expected)
-			}
-		})
-	}
-}
+	t.Run("deterministic_encoding", func(t *testing.T) {
+		inputs := []string{
+			"Hello, world!",
+			"The quick brown fox",
+			"Special chars: @#$%",
+			"Unicode: 你好世界 🦙",
+			"Mixed case: AbCdEfG",
+			"Numbers: 123456789",
+			"Punctuation: !@#$%^&*()",
+		}
 
-func TestGetSpecialTokenID(t *testing.T) {
-	tokenizer, err := New()
-	if err != nil || tokenizer.VocabSize() == 0 {
-		t.Skip("Skipping tests: Llama 3 data not available")
-	}
+		for _, input := range inputs {
+			t.Run(input, func(t *testing.T) {
+				// Encode the same input multiple times
+				opts := &EncodeOptions{BOS: false, EOS: false}
+				result1 := tokenizer.Encode(input, opts)
+				result2 := tokenizer.Encode(input, opts)
+				result3 := tokenizer.Encode(input, opts)
 
-	// Test valid special token
-	id, err := tokenizer.GetSpecialTokenID("<|begin_of_text|>")
-	if err != nil {
-		t.Errorf("GetSpecialTokenID() error = %v", err)
-	}
-	if id != 128000 {
-		t.Errorf("GetSpecialTokenID() = %d, want %d", id, 128000)
-	}
-
-	// Test invalid format
-	_, err = tokenizer.GetSpecialTokenID("not_a_special_token")
-	if err == nil {
-		t.Error("GetSpecialTokenID() expected error for invalid format")
-	}
-
-	// Test non-existent special token
-	_, err = tokenizer.GetSpecialTokenID("<|fake_token|>")
-	if err == nil {
-		t.Error("GetSpecialTokenID() expected error for non-existent token")
-	}
+				if !reflect.DeepEqual(result1, result2) || !reflect.DeepEqual(result2, result3) {
+					t.Errorf("Non-deterministic encoding for %q", input)
+					t.Logf("Result 1: %v", result1)
+					t.Logf("Result 2: %v", result2)
+					t.Logf("Result 3: %v", result3)
+				}
+			})
+		}
+	})
 }
 
 func TestLargeText(t *testing.T) {
@@ -216,5 +324,148 @@ func TestLargeText(t *testing.T) {
 	tokens := tokenizer.Encode(largeText, nil)
 	if len(tokens) != expectedLength {
 		t.Errorf("Large text encoding length = %d, want %d", len(tokens), expectedLength)
+	}
+
+	// Test that we can decode it back
+	decoded := tokenizer.Decode(tokens)
+	// The decoded text will have BOS/EOS tokens, so we need to strip them for comparison
+	decodedWithoutSpecial := strings.TrimPrefix(decoded, "<|begin_of_text|>")
+	decodedWithoutSpecial = strings.TrimSuffix(decodedWithoutSpecial, "<|end_of_text|>")
+	
+	if decodedWithoutSpecial != largeText {
+		t.Errorf("Large text round-trip failed")
+		// Log first 100 chars to avoid huge output
+		if len(decodedWithoutSpecial) > 100 {
+			t.Logf("Decoded (first 100 chars): %q...", decodedWithoutSpecial[:100])
+			t.Logf("Expected (first 100 chars): %q...", largeText[:100])
+		} else {
+			t.Logf("Decoded: %q", decodedWithoutSpecial)
+			t.Logf("Expected: %q", largeText)
+		}
+	}
+}
+
+// TestEncodeBytesMethod tests the EncodeBytes method
+func TestEncodeBytesMethod(t *testing.T) {
+	tokenizer, err := New()
+	if err != nil || tokenizer.VocabSize() == 0 {
+		t.Skip("Skipping tests: Llama 3 data not available")
+	}
+
+	text := "Hello, world!"
+	opts := &EncodeOptions{BOS: false, EOS: false}
+
+	// Encode string vs bytes should give same result
+	stringTokens := tokenizer.Encode(text, opts)
+	byteTokens := tokenizer.EncodeBytes([]byte(text), opts)
+
+	if !reflect.DeepEqual(stringTokens, byteTokens) {
+		t.Errorf("EncodeBytes() = %v, Encode() = %v", byteTokens, stringTokens)
+	}
+}
+
+// TestAppendTokensMethod tests the AppendTokens method
+func TestAppendTokensMethod(t *testing.T) {
+	tokenizer, err := New()
+	if err != nil || tokenizer.VocabSize() == 0 {
+		t.Skip("Skipping tests: Llama 3 data not available")
+	}
+
+	opts := &EncodeOptions{BOS: false, EOS: false}
+
+	t.Run("append_to_nil", func(t *testing.T) {
+		result := tokenizer.AppendTokens(nil, "Hello", opts)
+		expected := tokenizer.Encode("Hello", opts)
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("AppendTokens(nil) = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("append_to_existing", func(t *testing.T) {
+		initial := tokenizer.Encode("Hello", opts)
+		result := tokenizer.AppendTokens(initial, " world", opts)
+		expected := tokenizer.Encode("Hello world", opts)
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("AppendTokens() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("append_with_capacity", func(t *testing.T) {
+		// Pre-allocate with extra capacity
+		initial := make([]int, 0, 100)
+		initial = tokenizer.AppendTokens(initial, "Hello", opts)
+		capBefore := cap(initial)
+		
+		result := tokenizer.AppendTokens(initial, " world", opts)
+		
+		// Should reuse the same backing array if capacity was sufficient
+		if cap(result) < capBefore {
+			t.Errorf("AppendTokens() did not reuse capacity: cap = %d, want >= %d", cap(result), capBefore)
+		}
+	})
+}
+
+// TestOptimisticCount tests the OptimisticCount method
+func TestOptimisticCount(t *testing.T) {
+	tokenizer, err := New()
+	if err != nil || tokenizer.VocabSize() == 0 {
+		t.Skip("Skipping tests: Llama 3 data not available")
+	}
+
+	tests := []struct {
+		name     string
+		input    string
+		minCount int // We know it should be at least this many
+	}{
+		{
+			name:     "simple_text",
+			input:    "Hello world",
+			minCount: 3, // At least BOS + tokens + EOS
+		},
+		{
+			name:     "with_real_special_tokens",
+			input:    "<|begin_of_text|>Hello<|end_of_text|>",
+			minCount: 4, // BOS + special + Hello + special + EOS
+		},
+		{
+			name:     "with_unknown_special_tokens",
+			input:    "<|custom_token|>Hello<|another_custom|>",
+			minCount: 5, // Should count unknown special tokens as 1 each
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			count := tokenizer.OptimisticCount(tt.input)
+			if count < tt.minCount {
+				t.Errorf("OptimisticCount(%q) = %d, want >= %d", tt.input, count, tt.minCount)
+			}
+		})
+	}
+}
+
+// TestDecodeBytesMethod tests the DecodeBytes method
+func TestDecodeBytesMethod(t *testing.T) {
+	tokenizer, err := New()
+	if err != nil || tokenizer.VocabSize() == 0 {
+		t.Skip("Skipping tests: Llama 3 data not available")
+	}
+
+	text := "Hello, world! 🦙"
+	opts := &EncodeOptions{BOS: false, EOS: false}
+
+	// Encode and decode
+	tokens := tokenizer.Encode(text, opts)
+	decodedBytes := tokenizer.DecodeBytes(tokens)
+	decodedString := tokenizer.Decode(tokens)
+
+	// Both methods should produce the same result
+	if string(decodedBytes) != decodedString {
+		t.Errorf("DecodeBytes() = %q, Decode() = %q", string(decodedBytes), decodedString)
+	}
+
+	// Should match original
+	if string(decodedBytes) != text {
+		t.Errorf("DecodeBytes() = %q, want %q", string(decodedBytes), text)
 	}
 }

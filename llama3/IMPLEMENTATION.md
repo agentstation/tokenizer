@@ -171,6 +171,160 @@ To debug tokenization issues:
 3. Generate test vectors with `cmd/generate_vectors`
 4. Use state machine tests to verify pre-tokenization
 
+## Interfaces
+
+The llama3 tokenizer provides several interfaces for extensibility and testing. These interfaces follow Go idioms - they are small, focused, and located near their implementations.
+
+### Core Interfaces
+
+#### Encoder and Decoder
+Located in `tokenizer.go`, these are the primary interfaces for text tokenization:
+
+```go
+type Encoder interface {
+    Encode(text string, opts *EncodeOptions) []int
+}
+
+type Decoder interface {
+    Decode(tokens []int) string
+}
+```
+
+The `Tokenizer` type implements both interfaces. Function adapters `EncoderFunc` and `DecoderFunc` are provided for testing.
+
+#### Scanner
+Located in `scanner.go`, provides streaming tokenization following the `bufio.Scanner` pattern:
+
+```go
+type Scanner interface {
+    Scan() bool
+    Token() int
+    Text() string
+    Err() error
+}
+```
+
+Create a scanner with `tokenizer.NewScanner(reader)` or `NewScannerOptions` for custom configuration.
+
+### Pipeline Interfaces
+
+#### PreTokenizer
+Located in `pretokenizer.go`, handles the first stage of tokenization:
+
+```go
+type PreTokenizer interface {
+    PreTokenize(text string) []string
+}
+```
+
+Splits text into pre-tokens (words, punctuation, etc.) before BPE processing.
+
+#### BPEProcessor
+Located in `bpe.go`, implements Byte Pair Encoding:
+
+```go
+type BPEProcessor interface {
+    ProcessBPE(pretoken string) []int
+}
+```
+
+Applies BPE algorithm to pre-tokenized strings.
+
+### Infrastructure Interfaces
+
+#### Cache
+Located in `cache.go`, provides BPE result caching:
+
+```go
+type Cache interface {
+    Get(key string) ([]int, bool)
+    Put(key string, value []int)
+}
+```
+
+Two implementations provided:
+- `lruCache` - LRU eviction with configurable capacity
+- `simpleCache` - Unlimited map-based cache
+
+#### DataLoader
+Located in `data.go`, abstracts tokenizer data loading:
+
+```go
+type DataLoader interface {
+    LoadVocabulary() ([]string, error)
+    LoadMerges() (map[string]int, error)
+}
+```
+
+Implementations:
+- `DefaultDataLoader` - Uses embedded data
+- `FileDataLoader` - Loads from files
+- `DataLoaderFunc` - Function-based adapter for testing
+
+## Streaming API
+
+The streaming API provides memory-efficient tokenization for large texts and real-time processing scenarios.
+
+### Scanner Usage
+
+Basic streaming:
+```go
+tokenizer, _ := llama3.New()
+reader := strings.NewReader("Large text to tokenize...")
+scanner := tokenizer.NewScanner(reader)
+
+for scanner.Scan() {
+    token := scanner.Token()
+    // Process token
+}
+
+if err := scanner.Err(); err != nil {
+    // Handle error
+}
+```
+
+Custom buffer configuration:
+```go
+scanner := tokenizer.NewScannerOptions(reader,
+    llama3.WithBufferSize(8192),
+    llama3.WithMaxBuffer(1024*1024),
+    llama3.WithEncodeOptions(&llama3.EncodeOptions{
+        BOS: false,
+        EOS: false,
+    }),
+)
+```
+
+### Zero-Allocation Methods
+
+The tokenizer provides methods to minimize allocations:
+
+```go
+// Avoid string conversion for binary data
+tokens := tokenizer.EncodeBytes(data, opts)
+
+// Return bytes directly without string allocation
+bytes := tokenizer.DecodeBytes(tokens)
+
+// Reuse existing slice capacity
+tokens = tokenizer.AppendTokens(tokens, text, opts)
+```
+
+### UTF-8 Boundary Handling
+
+The scanner ensures UTF-8 sequences aren't split at buffer boundaries:
+- Proactively checks UTF-8 boundaries before writing to buffer
+- Saves incomplete UTF-8 sequences as pending bytes
+- Prevents corruption when buffer limits are reached mid-character
+
+### Performance Characteristics
+
+Streaming API benchmarks:
+- `EncodeBytes`: ~14μs (similar to Encode)
+- `DecodeBytes`: ~602ns (3% faster than Decode)
+- `AppendTokens`: ~1.5μs with efficient capacity reuse
+- `Scanner`: ~141μs for 100 repetitions
+
 ## Contributing
 
 When making changes:
