@@ -1,11 +1,12 @@
 {
   "packages": [
-    "git@2.44.1",
-    "curl@8.6.0",
-    "go@1.24.5",
-    "golangci-lint@1.60.3",
+    "git@2.50.0",
+    "curl@8.14.1",
+    "go@1.24.4",
+    "golangci-lint@2.3.0",
     "gomarkdoc@1.1.0",
-    "goreleaser@latest"
+    "goreleaser@latest",
+    "vhs@0.10.0"
   ],
   "shell": {
     "init_hook": [

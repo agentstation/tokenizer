@@ -8,6 +8,8 @@
 
 A collection of high-performance tokenizer implementations in Go with a unified CLI interface.
 
+![Tokenizer CLI Demo](docs/demo.gif)
+
 ## Installation
 
 ### Using Homebrew (Recommended for macOS/Linux)

@@ -96,6 +96,17 @@ dev: ## Start development server with hot-reloading (requires Air)
 	fi
 	@air
 
+.PHONY: demo
+demo: build ## Generate demo GIF using VHS
+	@echo "Generating demo GIF..."
+	@if ! command -v vhs >/dev/null 2>&1; then \
+		echo "VHS is not installed. Run 'devbox shell' or install with: brew install vhs"; \
+		exit 1; \
+	fi
+	@mkdir -p docs
+	@vhs scripts/demo.tape
+	@echo "Demo GIF generated: docs/demo.gif"
+
 .PHONY: fmt
 fmt: ## Run go fmt
 	@echo "Running go fmt..."
