@@ -1,3 +1,4 @@
+//go:build experiments
 // +build experiments
 
 // Package experiments contains experimental optimizations that are not included

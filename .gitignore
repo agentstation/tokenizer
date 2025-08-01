@@ -145,6 +145,14 @@ bin/
 cmd/example/example
 tokenizer
 
+# GoReleaser
+dist/
+*.snap
+
+# Devbox
+.devbox/
+.devbox.lock
+
 # Temporary files
 *.tmp
 *.temp

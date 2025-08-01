@@ -1,0 +1,55 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  # Build configuration
+  cmd = "go build -o ./tmp/tokenizer ./cmd/tokenizer"
+  bin = "./tmp/tokenizer"
+  
+  # Watch all relevant file types
+  include_ext = ["go", "tpl", "tmpl", "html", "yaml", "json", "md"]
+  include_dir = ["cmd", "llama3", "internal", "pkg"]
+  
+  # Exclude non-source directories
+  exclude_dir = ["tmp", "vendor", "testdata", "docs", "scripts", ".git", "dist", "coverage.out", "*.test", ".github", "examples"]
+  exclude_regex = ["_test\\.go", ".*\\.gen\\.go", ".*\\.pb\\.go"]
+  
+  # Performance settings
+  delay = 500  # Faster feedback
+  kill_delay = "2s"  # Graceful shutdown
+  
+  # Behavior
+  send_interrupt = true  # Send interrupt for graceful shutdown
+  stop_on_error = false  # Keep running on errors
+  log = "build-errors.log"
+  
+  # Arguments to pass to the binary
+  full_bin = "./tmp/tokenizer llama3 encode \"Hello, world!\""
+  
+  # File watching
+  exclude_unchanged = false
+  follow_symlink = false
+  poll = false
+  poll_interval = 0
+
+[color]
+  # Colorize the output
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+  app = "white"
+
+[log]
+  # Log settings
+  main_only = false
+  time = false
+
+[misc]
+  # Clean tmp directory on start
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = true
+  keep_scroll = true

@@ -6,12 +6,12 @@ import (
 
 // Constants for byte mapping ranges
 const (
-	asciiPrintableStart = '!'           // 33
-	asciiPrintableEnd   = '~'           // 126
-	extendedAsciiStart1 = '\u00A1'      // 161
-	extendedAsciiEnd1   = '\u00AC'      // 172
-	extendedAsciiStart2 = '\u00AE'      // 174
-	extendedAsciiEnd2   = '\u00FF'      // 255
+	asciiPrintableStart = '!'      // 33
+	asciiPrintableEnd   = '~'      // 126
+	extendedAsciiStart1 = '\u00A1' // 161
+	extendedAsciiEnd1   = '\u00AC' // 172
+	extendedAsciiStart2 = '\u00AE' // 174
+	extendedAsciiEnd2   = '\u00FF' // 255
 	unicodeOffset       = 256
 )
 

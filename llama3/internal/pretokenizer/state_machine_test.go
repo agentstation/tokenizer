@@ -689,23 +689,23 @@ func TestStateMachinePatterns(t *testing.T) {
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
 					got := Tokenize(tt.input)
-					
+
 					if !reflect.DeepEqual(got, tt.expected) {
-						t.Errorf("Tokenize(%q) = %q, want %q", 
+						t.Errorf("Tokenize(%q) = %q, want %q",
 							tt.input, got, tt.expected)
-						
+
 						// Additional debugging info
 						if len(got) != len(tt.expected) {
-							t.Errorf("Length mismatch: got %d tokens, want %d tokens", 
+							t.Errorf("Length mismatch: got %d tokens, want %d tokens",
 								len(got), len(tt.expected))
 						}
-						
+
 						// Show each token comparison
 						maxLen := len(got)
 						if len(tt.expected) > maxLen {
 							maxLen = len(tt.expected)
 						}
-						
+
 						for i := 0; i < maxLen; i++ {
 							var gotToken, wantToken string
 							if i < len(got) {
@@ -737,7 +737,7 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"lowercase_z", 'z', true},
 			{"uppercase_A", 'A', true},
 			{"uppercase_Z", 'Z', true},
-			
+
 			// Non-letters
 			{"number_0", '0', false},
 			{"number_9", '9', false},
@@ -749,7 +749,7 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"punctuation_question", '?', false},
 			{"symbol_at", '@', false},
 			{"symbol_hash", '#', false},
-			
+
 			// Unicode letters
 			{"greek_alpha", 'α', true},
 			{"greek_omega", 'ω', true},
@@ -759,12 +759,12 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"japanese_hiragana", 'あ', true},
 			{"arabic", 'م', true},
 			{"hebrew", 'א', true},
-			
+
 			// Accented letters
 			{"french_e_acute", 'é', true},
 			{"german_u_umlaut", 'ü', true},
 			{"spanish_n_tilde", 'ñ', true},
-			
+
 			// Non-letter unicode
 			{"emoji_face", '😀', false},
 			{"emoji_llama", '🦙', false},
@@ -793,14 +793,14 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"one", '1', true},
 			{"five", '5', true},
 			{"nine", '9', true},
-			
+
 			// Non-digits
 			{"letter_a", 'a', false},
 			{"letter_Z", 'Z', false},
 			{"space", ' ', false},
 			{"punctuation", '.', false},
 			{"symbol", '@', false},
-			
+
 			// Unicode digits
 			{"arabic_zero", '٠', true},
 			{"arabic_nine", '٩', true},
@@ -809,7 +809,7 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"bengali_zero", '০', true},
 			{"bengali_nine", '৯', true},
 			{"chinese_one", '一', false}, // Not a digit category
-			
+
 			// Things that look like numbers but aren't
 			{"roman_numeral", 'Ⅰ', false},
 			{"subscript", '₁', false},
@@ -839,7 +839,7 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"carriage_return", '\r', true},
 			{"form_feed", '\f', true},
 			{"vertical_tab", '\v', true},
-			
+
 			// Unicode whitespace
 			{"no_break_space", '\u00A0', true},
 			{"en_space", '\u2002', true},
@@ -847,7 +847,7 @@ func TestStateMachineHelpers(t *testing.T) {
 			{"thin_space", '\u2009', true},
 			{"hair_space", '\u200A', true},
 			{"zero_width_space", '\u200B', false}, // Zero-width is not considered whitespace by unicode.IsSpace
-			
+
 			// Non-whitespace
 			{"letter_a", 'a', false},
 			{"number_1", '1', false},
@@ -860,7 +860,7 @@ func TestStateMachineHelpers(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				got := isWhitespace(tt.rune)
 				if got != tt.expected {
-					t.Errorf("isWhitespace(%q / U+%04X) = %v, want %v", 
+					t.Errorf("isWhitespace(%q / U+%04X) = %v, want %v",
 						tt.rune, tt.rune, got, tt.expected)
 				}
 			})
@@ -1027,14 +1027,14 @@ func TestStateMachineUnicodeCategories(t *testing.T) {
 
 func TestCharacterClassification(t *testing.T) {
 	// Comprehensive tests for character classification functions
-	
+
 	// Test all ASCII characters
 	t.Run("ascii_classification", func(t *testing.T) {
 		for r := rune(0); r < 128; r++ {
 			isL := isLetter(r)
 			isN := isNumber(r)
 			isW := isWhitespace(r)
-			
+
 			// Verify mutual exclusivity for main categories
 			count := 0
 			if isL {
@@ -1046,17 +1046,17 @@ func TestCharacterClassification(t *testing.T) {
 			if isW {
 				count++
 			}
-			
+
 			if count > 1 {
 				t.Errorf("Rune %q (U+%04X) classified in multiple categories: letter=%v, number=%v, whitespace=%v",
 					r, r, isL, isN, isW)
 			}
-			
+
 			// Verify correct classification
 			expectedLetter := (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
 			expectedNumber := r >= '0' && r <= '9'
 			expectedWhitespace := unicode.IsSpace(r)
-			
+
 			if isL != expectedLetter {
 				t.Errorf("isLetter(%q) = %v, expected %v", r, isL, expectedLetter)
 			}
@@ -1081,16 +1081,16 @@ func BenchmarkTokenizeLongText(b *testing.B) {
 		"Code: if (x > 0) { return true; } else { return false; } ",
 		"\n\t   Mixed whitespace   \t\n",
 	}
-	
+
 	var builder strings.Builder
 	for i := 0; i < 100; i++ {
 		builder.WriteString(parts[i%len(parts)])
 	}
 	text := builder.String()
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		tokens := Tokenize(text)
 		_ = tokens
@@ -1099,10 +1099,10 @@ func BenchmarkTokenizeLongText(b *testing.B) {
 
 func BenchmarkTokenizeUnicode(b *testing.B) {
 	text := "Unicode test: café résumé naïve Ελληνικά Кириллица العربية עברית हिन्दी 中文 日本語 🦙🎉🚀"
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		tokens := Tokenize(text)
 		_ = tokens
@@ -1111,10 +1111,10 @@ func BenchmarkTokenizeUnicode(b *testing.B) {
 
 func BenchmarkTokenizeWhitespaceHeavyTable(b *testing.B) {
 	text := "   lots   of     spaces    and\t\t\ttabs\n\n\nand\nnewlines   everywhere   "
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		tokens := Tokenize(text)
 		_ = tokens

@@ -13,9 +13,9 @@ import (
 
 var (
 	// Encode command flags
-	encAddBOS    bool
-	encAddEOS    bool
-	encOutput    string
+	encAddBOS bool
+	encAddEOS bool
+	encOutput string
 )
 
 // newEncodeCmd creates the encode subcommand

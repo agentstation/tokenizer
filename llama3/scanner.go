@@ -3,7 +3,7 @@ package llama3
 import (
 	"fmt"
 	"io"
-	
+
 	"github.com/agentstation/tokenizer/llama3/scanner"
 )
 
@@ -12,15 +12,15 @@ import (
 type Scanner interface {
 	// Scan advances to the next token. Returns false at EOF or on error.
 	Scan() bool
-	
+
 	// Token returns the most recent token ID produced by Scan.
 	// Valid only after a successful call to Scan.
 	Token() int
-	
+
 	// Text returns the text that produced the current token.
 	// Valid only after a successful call to Scan.
 	Text() string
-	
+
 	// Err returns the first error encountered during scanning.
 	Err() error
 }
@@ -33,12 +33,12 @@ var (
 	// WithBufferSize sets the internal buffer size for reading.
 	// Default is 4096 bytes.
 	WithBufferSize = scanner.WithBufferSize
-	
+
 	// WithMaxBuffer sets the maximum buffer size before forcing tokenization.
 	// This prevents unbounded memory growth for pathological inputs.
 	// Default is 1MB.
 	WithMaxBuffer = scanner.WithMaxBuffer
-	
+
 	// WithEncodeOptions sets encoding options for the scanner.
 	WithEncodeOptions = func(opts *EncodeOptions) ScannerOption {
 		return scanner.WithEncodeOptions(&scanner.EncodeOptions{
@@ -76,28 +76,28 @@ func (t *Tokenizer) NewScannerOptions(r io.Reader, opts ...ScannerOption) Scanne
 // Returns the number of tokens written and any error encountered.
 func (t *Tokenizer) Process(r io.Reader, w io.Writer) (int64, error) {
 	scan := t.NewScanner(r)
-	
+
 	var count int64
 	for scan.Scan() {
 		token := scan.Token()
-		
+
 		// Write token as binary (4 bytes, little-endian)
 		buf := make([]byte, 4)
 		buf[0] = byte(token)
 		buf[1] = byte(token >> 8)
 		buf[2] = byte(token >> 16)
 		buf[3] = byte(token >> 24)
-		
+
 		if _, err := w.Write(buf); err != nil {
 			return count, fmt.Errorf("write token: %w", err)
 		}
 		count++
 	}
-	
+
 	if err := scan.Err(); err != nil {
 		return count, err
 	}
-	
+
 	return count, nil
 }
 
@@ -107,11 +107,11 @@ func (t *Tokenizer) Process(r io.Reader, w io.Writer) (int64, error) {
 func (t *Tokenizer) TokenStream(r io.Reader) (<-chan int, <-chan error) {
 	tokens := make(chan int, 100)
 	errc := make(chan error, 1)
-	
+
 	go func() {
 		defer close(tokens)
 		defer close(errc)
-		
+
 		scan := t.NewScanner(r)
 		for scan.Scan() {
 			select {
@@ -122,11 +122,11 @@ func (t *Tokenizer) TokenStream(r io.Reader) (<-chan int, <-chan error) {
 				tokens <- scan.Token()
 			}
 		}
-		
+
 		if err := scan.Err(); err != nil {
 			errc <- err
 		}
 	}()
-	
+
 	return tokens, errc
 }

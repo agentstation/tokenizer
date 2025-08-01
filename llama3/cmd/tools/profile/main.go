@@ -60,7 +60,7 @@ func main() {
 	fmt.Printf("\nResults:\n")
 	fmt.Printf("Total time: %v\n", elapsed)
 	fmt.Printf("Time per iteration: %v\n", elapsed/time.Duration(*iterations))
-	fmt.Printf("Tokens per iteration: %d\n", totalTokens/ *iterations)
+	fmt.Printf("Tokens per iteration: %d\n", totalTokens / *iterations)
 	fmt.Printf("Throughput: %.2f tokens/sec\n", float64(totalTokens)/elapsed.Seconds())
 
 	// Write memory profile if requested
@@ -92,17 +92,17 @@ func getTestText(textType string) string {
 		return "The quick brown fox jumps over the lazy dog. " +
 			"This is a simple ASCII text with numbers 123 and punctuation! " +
 			"We're testing contractions and various patterns."
-	
+
 	case "unicode":
 		return "Hello world! 你好世界！ Привет мир! مرحبا بالعالم! " +
 			"🌍🌎🌏 Unicode test with emojis 🦙🐕🦊 and various scripts " +
 			"αβγδε ΑΒΓΔΕ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿"
-	
+
 	case "whitespace":
 		return "   Multiple   spaces   between   words   \t\t\tand\ttabs\t\t\t" +
 			"\n\n\nand\nnewlines\n\n\n   with   trailing   spaces   " +
 			"          ten spaces before grabbed           "
-	
+
 	case "code":
 		return `func tokenize(text string) []string {
 	// Initialize state machine
@@ -116,17 +116,17 @@ func getTestText(textType string) string {
 	
 	return sm.tokens
 }`
-	
+
 	case "mixed":
 		return "Email: user@example.com | Phone: +1-555-0123 | " +
 			"Price: $99.99 (save 20%!) | URL: https://example.com/path?q=1 " +
 			"Unicode café résumé naïve 文字 🦙 | Code: if (x > 0) { return true; }"
-	
+
 	case "large":
 		// Generate a large text by repeating patterns
 		base := "The quick brown fox jumps over the lazy dog. "
 		return strings.Repeat(base, 100)
-	
+
 	default:
 		return "Hello, world! This is a default test text."
 	}

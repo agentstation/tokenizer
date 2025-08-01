@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
-	
+
 	"github.com/agentstation/tokenizer/llama3/internal/pretokenizer"
 	testutils "github.com/agentstation/tokenizer/llama3/internal/testing"
 )

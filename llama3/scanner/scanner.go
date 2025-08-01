@@ -29,25 +29,25 @@ type Scanner interface {
 
 // scanner implements the Scanner interface for streaming tokenization.
 type scanner struct {
-	t         Tokenizer
-	r         *bufio.Reader
-	
+	t Tokenizer
+	r *bufio.Reader
+
 	// Buffers
-	textBuf   bytes.Buffer    // Accumulated text to tokenize
-	tokens    []int           // Buffered tokens
-	tokIndex  int             // Current position in tokens buffer
-	lastText  string          // Text for current token
-	pending   []byte          // Pending bytes from incomplete UTF-8 sequence
-	
+	textBuf  bytes.Buffer // Accumulated text to tokenize
+	tokens   []int        // Buffered tokens
+	tokIndex int          // Current position in tokens buffer
+	lastText string       // Text for current token
+	pending  []byte       // Pending bytes from incomplete UTF-8 sequence
+
 	// State
-	err       error
-	done      bool
-	sentBOS   bool  // Track if we've sent BOS token
-	
+	err     error
+	done    bool
+	sentBOS bool // Track if we've sent BOS token
+
 	// Options
 	opts      *EncodeOptions
-	bufSize   int             // Internal buffer size
-	maxBuffer int             // Maximum buffer size before forcing tokenization
+	bufSize   int // Internal buffer size
+	maxBuffer int // Maximum buffer size before forcing tokenization
 }
 
 // Option configures scanner behavior.
@@ -98,14 +98,14 @@ func NewWithOptions(t Tokenizer, r io.Reader, opts ...Option) Scanner {
 		bufSize:   4096,
 		maxBuffer: 1024 * 1024, // 1MB default
 	}
-	
+
 	for _, opt := range opts {
 		opt(s)
 	}
-	
+
 	// Set reader buffer size
 	s.r = bufio.NewReaderSize(r, s.bufSize)
-	
+
 	return s
 }
 
@@ -114,28 +114,28 @@ func (s *scanner) Scan() bool {
 	if s.err != nil {
 		return false
 	}
-	
+
 	// If we have buffered tokens, return the next one
 	if s.tokIndex < len(s.tokens) {
 		s.tokIndex++
 		return true
 	}
-	
+
 	// Check if we're done and have no more tokens
 	if s.done && s.textBuf.Len() == 0 {
 		return false
 	}
-	
+
 	// Need to read more text and tokenize
 	s.tokens = s.tokens[:0]
 	s.tokIndex = 0
-	
+
 	// Read until we have enough text to tokenize
 	for {
 		// Try to read more data
 		buf := make([]byte, s.bufSize)
 		n, err := s.r.Read(buf)
-		
+
 		if n > 0 {
 			// If we have pending bytes from a previous incomplete UTF-8 sequence,
 			// prepend them to the new data
@@ -144,10 +144,10 @@ func (s *scanner) Scan() bool {
 				toWrite = append(s.pending, buf[:n]...)
 				s.pending = nil
 			}
-			
+
 			// Before writing, check if this would exceed our buffer limit
 			// and if so, check for UTF-8 boundaries in the new data
-			if s.textBuf.Len() + len(toWrite) > s.maxBuffer {
+			if s.textBuf.Len()+len(toWrite) > s.maxBuffer {
 				// We need to be careful about UTF-8 boundaries
 				maxWrite := s.maxBuffer - s.textBuf.Len()
 				if maxWrite > 0 && maxWrite < len(toWrite) {
@@ -161,10 +161,10 @@ func (s *scanner) Scan() bool {
 					}
 				}
 			}
-			
+
 			s.textBuf.Write(toWrite)
 		}
-		
+
 		// Check if we've hit the maximum buffer size
 		if s.textBuf.Len() >= s.maxBuffer {
 			// Check if we need to handle a UTF-8 boundary at the exact limit
@@ -185,18 +185,18 @@ func (s *scanner) Scan() bool {
 			// Force tokenization of what we have
 			break
 		}
-		
+
 		if err != nil {
 			if err == io.EOF {
 				// End of input
 				s.done = true
-				
+
 				// If we have pending bytes at EOF, add them to the buffer
 				if len(s.pending) > 0 {
 					s.textBuf.Write(s.pending)
 					s.pending = nil
 				}
-				
+
 				if s.textBuf.Len() == 0 {
 					// No more data to process
 					// Handle BOS for empty input
@@ -229,13 +229,13 @@ func (s *scanner) Scan() bool {
 			}
 			return false
 		}
-		
+
 		// Look for a good tokenization boundary
 		if s.hasTokenizationBoundary() {
 			break
 		}
 	}
-	
+
 	// Tokenize accumulated text
 	text := s.textBuf.String()
 	if len(text) > 0 {
@@ -244,30 +244,30 @@ func (s *scanner) Scan() bool {
 		if addBOS {
 			s.sentBOS = true
 		}
-		
+
 		// Create temporary options for this chunk
 		chunkOpts := &EncodeOptions{
 			BOS: addBOS,
 			EOS: false, // Handle EOS separately at the end
 		}
-		
+
 		// Tokenize the chunk
 		s.tokens = s.t.Encode(text, chunkOpts)
 		s.textBuf.Reset()
-		
+
 		// Handle EOS if this is the last chunk
 		if s.done && s.opts.EOS {
 			if id, err := s.t.GetSpecialTokenID("<|end_of_text|>"); err == nil {
 				s.tokens = append(s.tokens, id)
 			}
 		}
-		
+
 		if len(s.tokens) > 0 {
 			s.tokIndex = 0
 			return s.Scan() // Recursively call to return first token
 		}
 	}
-	
+
 	return false
 }
 
@@ -299,65 +299,64 @@ func (s *scanner) hasTokenizationBoundary() bool {
 	if s.textBuf.Len() == 0 {
 		return false
 	}
-	
+
 	// Get the last few bytes to check
 	buf := s.textBuf.Bytes()
 	if len(buf) == 0 {
 		return false
 	}
-	
+
 	// Check if we're at a whitespace boundary
 	lastByte := buf[len(buf)-1]
 	if lastByte == ' ' || lastByte == '\n' || lastByte == '\t' || lastByte == '\r' {
 		return true
 	}
-	
+
 	// Check if we might be in the middle of a UTF-8 sequence
 	// UTF-8 continuation bytes start with 10xxxxxx
 	if lastByte&0xC0 == 0x80 {
 		// We're in the middle of a UTF-8 sequence, don't split here
 		return false
 	}
-	
+
 	// If buffer is getting large, accept any UTF-8 boundary
 	if s.textBuf.Len() > s.bufSize/2 {
 		return true
 	}
-	
+
 	return false
 }
-
 
 // isValidUTF8Ending checks if the buffer ends at a valid UTF-8 boundary
 func isValidUTF8Ending(buf []byte) bool {
 	if len(buf) == 0 {
 		return true
 	}
-	
+
 	// Check the last byte
 	lastByte := buf[len(buf)-1]
-	
+
 	// ASCII is always valid
 	if lastByte < 0x80 {
 		return true
 	}
-	
+
 	// If it's a continuation byte, we might have an incomplete sequence
 	if lastByte&0xC0 == 0x80 {
 		// This is a continuation byte, not a valid ending
 		return false
 	}
-	
+
 	// It's the start of a multi-byte sequence, check if complete
 	expectedLen := 0
 	if lastByte&0xE0 == 0xC0 {
 		expectedLen = 2
 	} else if lastByte&0xF0 == 0xE0 {
-		expectedLen = 3  
+		expectedLen = 3
 	} else if lastByte&0xF8 == 0xF0 {
 		expectedLen = 4
 	}
-	
+
 	// Count continuation bytes after this start byte
 	// Since this is the last byte, we expect 0 continuation bytes
 	// So this is incomplete
@@ -368,12 +367,12 @@ func isValidUTF8Ending(buf []byte) bool {
 func findLastCompleteUTF8(buf []byte) int {
 	for i := len(buf) - 1; i >= 0 && i >= len(buf)-4; i-- {
 		b := buf[i]
-		
+
 		// ASCII byte - this is a complete character
 		if b < 0x80 {
 			return i + 1
 		}
-		
+
 		// Start of UTF-8 sequence
 		if b&0xC0 != 0x80 {
 			// Check if we have the complete sequence
@@ -385,7 +384,7 @@ func findLastCompleteUTF8(buf []byte) int {
 			} else if b&0xF8 == 0xF0 {
 				seqLen = 4
 			}
-			
+
 			if i+seqLen <= len(buf) {
 				// Complete sequence
 				return i + seqLen
@@ -394,7 +393,7 @@ func findLastCompleteUTF8(buf []byte) int {
 			return i
 		}
 	}
-	
+
 	// Shouldn't get here with valid UTF-8
 	return len(buf)
 }
@@ -406,13 +405,13 @@ func findUTF8Boundary(data []byte, maxBytes int) int {
 	if maxBytes >= len(data) {
 		return len(data)
 	}
-	
+
 	// Start from maxBytes and work backwards to find a valid boundary
 	for i := maxBytes; i > 0 && i > maxBytes-4; i-- {
 		if i >= len(data) {
 			continue
 		}
-		
+
 		b := data[i]
 		// Check if this is the start of a UTF-8 sequence or ASCII
 		if b < 0x80 || b&0xC0 != 0x80 {
@@ -420,7 +419,7 @@ func findUTF8Boundary(data []byte, maxBytes int) int {
 			return i
 		}
 	}
-	
+
 	// If we can't find a good boundary, check from the beginning
 	// of where we want to cut
 	if maxBytes < len(data) {
@@ -435,10 +434,9 @@ func findUTF8Boundary(data []byte, maxBytes int) int {
 			}
 		}
 	}
-	
+
 	return maxBytes
 }
-
 
 // ScanError represents an error during scanning with context.
 type ScanError struct {
@@ -452,7 +450,7 @@ func (e *ScanError) Error() string {
 	if len(preview) > 50 {
 		preview = preview[:50] + "..."
 	}
-	return fmt.Sprintf("tokenization error at offset %d (text: %q): %v", 
+	return fmt.Sprintf("tokenization error at offset %d (text: %q): %v",
 		e.Offset, preview, e.Err)
 }
 

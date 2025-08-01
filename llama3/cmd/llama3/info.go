@@ -35,7 +35,7 @@ func runInfo(cmd *cobra.Command, args []string) error {
 	fmt.Println("Llama 3 Tokenizer Information")
 	fmt.Println("=============================")
 	fmt.Println()
-	
+
 	// Basic information
 	fmt.Println("Model Details:")
 	fmt.Printf("  Model Type:        Llama 3 (Meta)\n")
@@ -69,7 +69,7 @@ func runInfo(cmd *cobra.Command, args []string) error {
 			fmt.Printf("  %-18s %-30s -> %d\n", st.name+":", st.token, id)
 		}
 	}
-	
+
 	fmt.Println()
 	fmt.Printf("  ... and %d more reserved special tokens\n", 245)
 	fmt.Println()

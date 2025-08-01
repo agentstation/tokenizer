@@ -87,7 +87,7 @@ func runStream(cmd *cobra.Command, args []string) error {
 	for scanner.Scan() {
 		token := scanner.Token()
 		tokenCount++
-		
+
 		switch streamOutput {
 		case "newline":
 			fmt.Println(token)

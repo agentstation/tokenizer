@@ -244,7 +244,7 @@ func TestTokenizerSpecialTokens(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotID, err := tokenizer.GetSpecialTokenID(tt.token)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("GetSpecialTokenID(%q) error = nil, wantErr %v", tt.token, tt.wantErr)
@@ -274,7 +274,7 @@ func TestTokenizerProperties(t *testing.T) {
 
 	t.Run("vocabulary_size", func(t *testing.T) {
 		vocabSize := tokenizer.VocabSize()
-		
+
 		if vocabSize != totalVocabSize {
 			t.Errorf("VocabSize() = %d, want %d", vocabSize, totalVocabSize)
 		}
@@ -331,7 +331,7 @@ func TestLargeText(t *testing.T) {
 	// The decoded text will have BOS/EOS tokens, so we need to strip them for comparison
 	decodedWithoutSpecial := strings.TrimPrefix(decoded, "<|begin_of_text|>")
 	decodedWithoutSpecial = strings.TrimSuffix(decodedWithoutSpecial, "<|end_of_text|>")
-	
+
 	if decodedWithoutSpecial != largeText {
 		t.Errorf("Large text round-trip failed")
 		// Log first 100 chars to avoid huge output
@@ -395,9 +395,9 @@ func TestAppendTokensMethod(t *testing.T) {
 		initial := make([]int, 0, 100)
 		initial = tokenizer.AppendTokens(initial, "Hello", opts)
 		capBefore := cap(initial)
-		
+
 		result := tokenizer.AppendTokens(initial, " world", opts)
-		
+
 		// Should reuse the same backing array if capacity was sufficient
 		if cap(result) < capBefore {
 			t.Errorf("AppendTokens() did not reuse capacity: cap = %d, want >= %d", cap(result), capBefore)

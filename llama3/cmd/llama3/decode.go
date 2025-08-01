@@ -105,12 +105,12 @@ func runDecode(cmd *cobra.Command, args []string) error {
 			"<|python_tag|>",
 			"<|finetune_right_pad_id|>",
 		}
-		
+
 		// Also remove reserved special tokens
 		for i := 0; i < 256; i++ {
 			specialTokens = append(specialTokens, fmt.Sprintf("<|reserved_special_token_%d|>", i))
 		}
-		
+
 		for _, special := range specialTokens {
 			text = strings.ReplaceAll(text, special, "")
 		}

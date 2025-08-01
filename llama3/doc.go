@@ -108,16 +108,16 @@
 // Pool Usage Patterns:
 //
 // 1. State Machine Pooling (stateMachinePool)
-//    - Reuses StateMachine instances across tokenization calls
-//    - Reduces allocations for the input rune slice and token slice
-//    - Pool never limits the number of state machines
-//    - State machines are reset before reuse
+//   - Reuses StateMachine instances across tokenization calls
+//   - Reduces allocations for the input rune slice and token slice
+//   - Pool never limits the number of state machines
+//   - State machines are reset before reuse
 //
 // 2. Token Buffer Pooling (tokenBufPool)
-//    - Reuses []string slices for collecting tokens
-//    - Initial capacity: 64 tokens
-//    - Maximum pooled capacity: 1024 tokens
-//    - Buffers exceeding the maximum are not returned to the pool
+//   - Reuses []string slices for collecting tokens
+//   - Initial capacity: 64 tokens
+//   - Maximum pooled capacity: 1024 tokens
+//   - Buffers exceeding the maximum are not returned to the pool
 //
 // Memory Lifecycle:
 //

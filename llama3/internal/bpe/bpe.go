@@ -13,7 +13,6 @@ type Processor struct {
 	Cache       Cache          // Cache for BPE results
 }
 
-
 // PerformBPE executes the Byte Pair Encoding algorithm on a pre-token.
 func (p *Processor) PerformBPE(pretoken string) []int {
 	// Try to get from cache
@@ -169,7 +168,7 @@ func (p *Processor) performMerge(leftOfMerge *MergeNode, firstNode *MergeNode, p
 
 	// Update links and add new merge possibilities
 	firstNode = p.updateMergeLinks(resultOfMerge, firstNode, pq, pretokenLen)
-	
+
 	return firstNode
 }
 
@@ -192,7 +191,7 @@ func (p *Processor) updatePreviousNode(leftOfMerge *MergeNode, firstNode *MergeN
 	} else {
 		firstNode = newPrev
 	}
-	
+
 	return firstNode
 }
 
@@ -209,6 +208,6 @@ func (p *Processor) updateMergeLinks(resultOfMerge *MergeNode, firstNode *MergeN
 		resultOfMerge.Next.Prev = resultOfMerge
 		p.addToMergeQueue(resultOfMerge, pq, pretokenLen)
 	}
-	
+
 	return firstNode
 }

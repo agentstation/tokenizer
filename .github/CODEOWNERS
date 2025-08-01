@@ -1,0 +1,29 @@
+# CODEOWNERS for Tokenizer
+# This file defines who is responsible for code in this repository
+# and will be automatically requested for review on pull requests
+
+# Default owners for everything in the repo
+* @agentstation/maintainers
+
+# Go module dependencies
+go.mod @agentstation/maintainers
+go.sum @agentstation/maintainers
+
+# GitHub Actions workflows
+.github/workflows/ @agentstation/maintainers
+
+# CI/CD and build configuration
+.goreleaser.yaml @agentstation/maintainers
+Makefile @agentstation/maintainers
+.golangci.yml @agentstation/maintainers
+.pre-commit-config.yaml @agentstation/maintainers
+
+# Documentation
+*.md @agentstation/maintainers
+docs/ @agentstation/maintainers
+
+# Core library code
+llama3/ @agentstation/maintainers
+
+# CLI code
+cmd/ @agentstation/maintainers

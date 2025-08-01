@@ -3,7 +3,7 @@ package llama3
 import (
 	"strings"
 	"testing"
-	
+
 	"github.com/agentstation/tokenizer/llama3/internal/pretokenizer"
 )
 
