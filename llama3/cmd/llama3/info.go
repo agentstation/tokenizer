@@ -3,8 +3,9 @@ package llama3cmd
 import (
 	"fmt"
 
-	"github.com/agentstation/tokenizer/llama3"
 	"github.com/spf13/cobra"
+
+	"github.com/agentstation/tokenizer/llama3"
 )
 
 // newInfoCmd creates the info subcommand.

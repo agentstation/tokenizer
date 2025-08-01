@@ -7,8 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agentstation/tokenizer/llama3"
 	"github.com/spf13/cobra"
+
+	"github.com/agentstation/tokenizer/llama3"
 )
 
 var (
