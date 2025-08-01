@@ -1,3 +1,4 @@
+// Command profile provides performance profiling for the tokenizer.
 package main
 
 import (

@@ -11,7 +11,7 @@ type Cache interface {
 	Put(key string, value []int)
 }
 
-// lruCache implements a thread-safe LRU cache for BPE results.
+// LRUCache implements a thread-safe LRU cache for BPE results.
 type LRUCache struct {
 	capacity int
 	items    map[string]*list.Element

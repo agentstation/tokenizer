@@ -30,6 +30,7 @@ func (pq PriorityQueue) Swap(i, j int) {
 	pq[j].HeapIndex = j
 }
 
+// Push adds a node to the priority queue.
 func (pq *PriorityQueue) Push(x interface{}) {
 	n := len(*pq)
 	node := x.(*MergeNode)
@@ -37,6 +38,7 @@ func (pq *PriorityQueue) Push(x interface{}) {
 	*pq = append(*pq, node)
 }
 
+// Pop removes and returns the highest priority node from the queue.
 func (pq *PriorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)

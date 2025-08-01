@@ -1,3 +1,4 @@
+// Package tokenizer provides a collection of high-performance tokenizer implementations.
 package tokenizer
 
 // Generate documentation for the root package

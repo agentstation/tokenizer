@@ -47,10 +47,10 @@ const (
 const (
 	asciiPrintableStart = '!' // First printable ASCII character
 	asciiPrintableEnd   = '~' // Last printable ASCII character
-	extendedAsciiStart1 = '¡' // First extended ASCII range start
-	extendedAsciiEnd1   = '¬' // First extended ASCII range end
-	extendedAsciiStart2 = '®' // Second extended ASCII range start
-	extendedAsciiEnd2   = 'ÿ' // Second extended ASCII range end
+	extendedASCIIStart1 = '¡' // First extended ASCII range start
+	extendedASCIIEnd1   = '¬' // First extended ASCII range end
+	extendedASCIIStart2 = '®' // Second extended ASCII range start
+	extendedASCIIEnd2   = 'ÿ' // Second extended ASCII range end
 	unicodeOffset       = 256 // Offset for mapping non-printable bytes
 )
 

@@ -9,6 +9,12 @@ import (
 	"github.com/agentstation/tokenizer/llama3"
 )
 
+const (
+	// Output format constants.
+	outputFormatSpace   = "space"
+	outputFormatNewline = "newline"
+)
+
 var (
 	// Stream command flags.
 	streamBufferSize int
@@ -58,7 +64,7 @@ Input is read from stdin only.`,
 	return cmd
 }
 
-func runStream(cmd *cobra.Command, args []string) error {
+func runStream(_ *cobra.Command, args []string) error {
 
 	// Validate output format
 	if streamOutput != "space" && streamOutput != "newline" {
@@ -90,7 +96,7 @@ func runStream(cmd *cobra.Command, args []string) error {
 		tokenCount++
 
 		switch streamOutput {
-		case "newline":
+		case outputFormatNewline:
 			fmt.Println(token)
 		case "space":
 			if !first {

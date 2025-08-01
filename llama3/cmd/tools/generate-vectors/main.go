@@ -1,3 +1,4 @@
+// Command generate-vectors creates test vectors for tokenizer validation.
 package main
 
 import (

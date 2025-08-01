@@ -1,3 +1,4 @@
+// Package scanner provides buffered token scanning capabilities.
 package scanner
 
 import (

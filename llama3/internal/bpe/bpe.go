@@ -1,3 +1,4 @@
+// Package bpe implements Byte Pair Encoding algorithms for tokenization.
 package bpe
 
 import (

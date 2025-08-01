@@ -50,7 +50,7 @@ skipped using the --skip-special flag.`,
 	return cmd
 }
 
-func runDecode(cmd *cobra.Command, args []string) error {
+func runDecode(_ *cobra.Command, args []string) error {
 	// Initialize tokenizer
 	tokenizer, err := llama3.New()
 	if err != nil {

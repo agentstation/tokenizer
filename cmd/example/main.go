@@ -1,3 +1,4 @@
+// Example demonstrates usage of the llama3 tokenizer.
 package main
 
 import (

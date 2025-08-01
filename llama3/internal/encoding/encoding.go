@@ -1,3 +1,4 @@
+// Package encoding provides byte-to-unicode encoding for tokenization.
 package encoding
 
 import (
@@ -8,10 +9,10 @@ import (
 const (
 	asciiPrintableStart = '!'      // 33
 	asciiPrintableEnd   = '~'      // 126
-	extendedAsciiStart1 = '\u00A1' // 161
-	extendedAsciiEnd1   = '\u00AC' // 172
-	extendedAsciiStart2 = '\u00AE' // 174
-	extendedAsciiEnd2   = '\u00FF' // 255
+	extendedASCIIStart1 = '\u00A1' // 161
+	extendedASCIIEnd1   = '\u00AC' // 172
+	extendedASCIIStart2 = '\u00AE' // 174
+	extendedASCIIEnd2   = '\u00FF' // 255
 	unicodeOffset       = 256
 )
 
@@ -39,11 +40,11 @@ func CreateByteMappings() (map[byte]rune, map[rune]byte) {
 		bs = append(bs, int(i))
 	}
 	// Add first extended ASCII range
-	for i := extendedAsciiStart1; i <= extendedAsciiEnd1; i++ {
+	for i := extendedASCIIStart1; i <= extendedASCIIEnd1; i++ {
 		bs = append(bs, int(i))
 	}
 	// Add second extended ASCII range
-	for i := extendedAsciiStart2; i <= extendedAsciiEnd2; i++ {
+	for i := extendedASCIIStart2; i <= extendedASCIIEnd2; i++ {
 		bs = append(bs, int(i))
 	}
 

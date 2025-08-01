@@ -1,3 +1,4 @@
+// Package pretokenizer implements regex-based text preprocessing for tokenization.
 package pretokenizer
 
 const (

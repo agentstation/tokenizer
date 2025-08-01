@@ -58,7 +58,7 @@ The output format can be:
 	return cmd
 }
 
-func runEncode(cmd *cobra.Command, args []string) error {
+func runEncode(_ *cobra.Command, args []string) error {
 
 	// Initialize tokenizer
 	tokenizer, err := llama3.New()
