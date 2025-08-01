@@ -36,22 +36,12 @@ jobs:
       with:
         go-version: '1.24'
 
-    - name: Debug - List directory structure
-      run: |
-        echo "Current directory: $(pwd)"
-        echo "Directory contents:"
-        ls -la
-        echo "cmd directory:"
-        ls -la cmd/
-        echo "cmd/tokenizer directory:"
-        ls -la cmd/tokenizer/
-
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
       with:
         distribution: goreleaser
         version: '~> v2'
-        args: release --clean --verbose
+        args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
