@@ -55,6 +55,9 @@ var versionCmd = &cobra.Command{
 		if goVersion != "unknown" {
 			fmt.Printf("  go version: %s\n", goVersion)
 		}
+		if builtBy != "source" {
+			fmt.Printf("  built by:   %s\n", builtBy)
+		}
 	},
 }
 

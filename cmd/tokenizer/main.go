@@ -11,6 +11,7 @@ var (
 	commit    = "none"
 	buildDate = "unknown"
 	goVersion = "unknown"
+	builtBy   = "source"
 )
 
 func main() {

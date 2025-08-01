@@ -4,6 +4,8 @@ before:
   hooks:
     - go mod tidy
     - go test ./...
+env:
+  - GO_VERSION={{ if index .Env "GO_VERSION" }}{{ .Env.GO_VERSION }}{{ else }}{{ .Runtime.Goversion }}{{ end }}
 
 builds:
   - id: tokenizer
@@ -35,8 +37,9 @@ builds:
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
-      - -X main.commit={{.Commit}}
+      - -X main.commit={{.ShortCommit}}
       - -X main.buildDate={{.Date}}
+      - -X main.goVersion={{.Env.GO_VERSION}}
       - -X main.builtBy=goreleaser
 
 archives:
@@ -152,6 +155,9 @@ brews:
     # Skip upload if version exists
     skip_upload: false
     
+    # Use pre-built binaries (bottles) instead of building from source
+    download_strategy: CurlDownloadStrategy
+    
     # Dependencies
     dependencies:
       - name: go
@@ -164,13 +170,14 @@ brews:
         bin.install "tokenizer"
       else
         # Build from source with version information
-        commit = Utils.git_short_head rescue "homebrew"
+        # Note: buildDate is the actual build time (now), not the commit date
         ldflags = %W[
           -s -w
           -X main.version=#{version}
-          -X main.commit=#{commit}
+          -X main.commit={{ .ShortCommit }}
           -X main.buildDate=#{Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")}
           -X main.goVersion=#{Formula["go"].version}
+          -X main.builtBy=homebrew
         ]
         system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/tokenizer"
       end
