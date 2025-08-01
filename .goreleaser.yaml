@@ -7,9 +7,8 @@ before:
 
 builds:
   - id: tokenizer
-    main: ./cmd/tokenizer/
+    main: ./cmd/tokenizer
     binary: tokenizer
-    dir: .
     env:
       - CGO_ENABLED=0
     goos:
@@ -38,7 +37,7 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.buildDate={{.Date}}
-      - -X main.goVersion={{.Runtime.Goversion}}
+      - -X main.builtBy=goreleaser
 
 archives:
   - id: tokenizer
