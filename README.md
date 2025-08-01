@@ -56,14 +56,17 @@ make install
 Quick usage:
 
 ```bash
-# Encode text
-tokenizer llama3 encode "Hello, world!"
+# Encode text (implicit - recommended)
+tokenizer llama3 "Hello, world!"
 
 # Decode tokens
 tokenizer llama3 decode 128000 9906 11 1917 0 128001
 
-# Stream large files
-cat document.txt | tokenizer llama3 stream
+# Stream large files (automatic pipe detection)
+cat document.txt | tokenizer llama3
+
+# Get tokenizer information
+tokenizer llama3 info
 ```
 
 See [cmd/tokenizer/README.md](cmd/tokenizer/README.md) for full CLI documentation.
@@ -89,6 +92,29 @@ go get github.com/agentstation/tokenizer/llama3
 ```
 
 ## Quick Start
+
+### CLI Usage
+
+```bash
+# Install via Homebrew
+brew install agentstation/tap/tokenizer
+
+# Encode text (simple, intuitive)
+tokenizer llama3 "Hello, world!"
+# Output: 128000 9906 11 1917 0 128001
+
+# Decode tokens
+tokenizer llama3 decode 128000 9906 11 1917 0 128001
+# Output: <|begin_of_text|>Hello, world!<|end_of_text|>
+
+# Stream from files (automatic)
+cat document.txt | tokenizer llama3
+
+# Get help
+tokenizer llama3 help
+```
+
+### Library Usage
 
 ```go
 package main

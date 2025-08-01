@@ -74,8 +74,8 @@ Available commands:
 				return streamCmd.Execute()
 			}
 
-			// No args and no piped input, show usage
-			return cmd.Usage()
+			// No args and no piped input, show help
+			return cmd.Help()
 		},
 	}
 

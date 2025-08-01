@@ -21,7 +21,11 @@ The tokenizer CLI uses a subcommand structure where each tokenizer implementatio
 ### Basic Commands
 
 ```bash
-# Encode text to token IDs
+# Encode text to token IDs (implicit - default action)
+tokenizer llama3 "Hello, world!"
+# Output: 128000 9906 11 1917 0 128001
+
+# Encode text to token IDs (explicit)
 tokenizer llama3 encode "Hello, world!"
 # Output: 128000 9906 11 1917 0 128001
 
@@ -31,6 +35,10 @@ tokenizer llama3 decode 128000 9906 11 1917 0 128001
 
 # Get tokenizer information
 tokenizer llama3 info
+
+# Show help
+tokenizer llama3 help
+# Or just: tokenizer llama3
 ```
 
 ### Encoding Options
@@ -57,16 +65,23 @@ tokenizer llama3 encode -o newline "Hello, world!"
 ### Piping and Streaming
 
 ```bash
-# Pipe text to encode
+# Pipe text to encode (automatic streaming)
+echo "Hello, world!" | tokenizer llama3
+# Output: 128000 9906 11 1917 0 128001
+
+# Pipe text to encode (explicit)
 echo "Hello, world!" | tokenizer llama3 encode
 
 # Pipe tokens to decode
 echo "128000 9906 11 1917 0 128001" | tokenizer llama3 decode
 
 # Round-trip encoding and decoding
-tokenizer llama3 encode "test" | tokenizer llama3 decode
+tokenizer llama3 "test" | tokenizer llama3 decode
 
-# Stream large files
+# Stream large files (automatic)
+cat large_file.txt | tokenizer llama3
+
+# Stream large files (explicit)
 cat large_file.txt | tokenizer llama3 stream
 ```
 
@@ -75,10 +90,11 @@ cat large_file.txt | tokenizer llama3 stream
 For processing large files or real-time input:
 
 ```bash
-# Basic streaming
-tokenizer llama3 stream < input.txt
+# Automatic streaming (detects piped input)
+tokenizer llama3 < input.txt
+cat large_file.txt | tokenizer llama3
 
-# Custom buffer settings
+# Explicit streaming with options
 tokenizer llama3 stream --buffer-size=8192 --max-buffer=2097152 < large_file.txt
 
 # Stream without special tokens
