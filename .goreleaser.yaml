@@ -213,7 +213,7 @@ homebrew_casks:
       Tokenizer has been installed! 🚀
 
       Quick start:
-        tokenizer llama3 encode "Hello, world!"     # Encode text to tokens
+        tokenizer llama3 encode 'Hello, world!'     # Encode text to tokens
         tokenizer llama3 decode 128000 9906 128001  # Decode tokens to text
         tokenizer llama3 info                       # Show tokenizer info
         tokenizer --help                            # Show all commands
