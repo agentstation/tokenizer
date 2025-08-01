@@ -110,6 +110,133 @@ func NewWithOptions(t Tokenizer, r io.Reader, opts ...Option) Scanner {
 	return s
 }
 
+// scanBufferedToken returns the next buffered token if available.
+func (s *scanner) scanBufferedToken() bool {
+	if s.tokIndex < len(s.tokens) {
+		s.tokIndex++
+		return true
+	}
+	return false
+}
+
+// readMoreData reads data from the input reader into the buffer.
+// Returns true if data was read or EOF was reached.
+func (s *scanner) readMoreData() (bool, error) {
+	buf := make([]byte, s.bufSize)
+	n, err := s.r.Read(buf)
+
+	if n > 0 {
+		toWrite := buf[:n]
+		if len(s.pending) > 0 {
+			toWrite = append(s.pending, buf[:n]...)
+			s.pending = nil
+		}
+
+		toWrite = s.handleBufferLimit(toWrite)
+		s.textBuf.Write(toWrite)
+	}
+
+	if err == io.EOF {
+		s.done = true
+		if len(s.pending) > 0 {
+			s.textBuf.Write(s.pending)
+			s.pending = nil
+		}
+		return true, nil
+	}
+
+	return n > 0, err
+}
+
+// handleBufferLimit ensures we don't exceed the buffer limit and handles UTF-8 boundaries.
+// Returns the adjusted byte slice that should be written.
+func (s *scanner) handleBufferLimit(toWrite []byte) []byte {
+	if s.textBuf.Len()+len(toWrite) > s.maxBuffer {
+		maxWrite := s.maxBuffer - s.textBuf.Len()
+		if maxWrite > 0 && maxWrite < len(toWrite) {
+			writeUpTo := findUTF8Boundary(toWrite, maxWrite)
+			if writeUpTo < len(toWrite) {
+				s.pending = make([]byte, len(toWrite)-writeUpTo)
+				copy(s.pending, toWrite[writeUpTo:])
+				return toWrite[:writeUpTo]
+			}
+		}
+	}
+	return toWrite
+}
+
+// handleMaxBufferReached handles the case when the buffer reaches its maximum size.
+func (s *scanner) handleMaxBufferReached() {
+	if s.textBuf.Len() == s.maxBuffer && len(s.pending) == 0 {
+		buf := s.textBuf.Bytes()
+		if len(buf) > 0 && !isValidUTF8Ending(buf) {
+			splitAt := findLastCompleteUTF8(buf)
+			if splitAt < len(buf) {
+				s.pending = make([]byte, len(buf)-splitAt)
+				copy(s.pending, buf[splitAt:])
+				s.textBuf.Truncate(splitAt)
+			}
+		}
+	}
+}
+
+// handleEOFTokens handles adding BOS/EOS tokens when the input is empty at EOF.
+func (s *scanner) handleEOFTokens() bool {
+	if s.textBuf.Len() == 0 {
+		// Handle BOS for empty input
+		if s.opts.BOS && !s.sentBOS {
+			if id, err := s.t.GetSpecialTokenID("<|begin_of_text|>"); err == nil {
+				s.tokens = append(s.tokens, id)
+				s.sentBOS = true
+			}
+		}
+		// Handle EOS
+		if s.opts.EOS {
+			if id, err := s.t.GetSpecialTokenID("<|end_of_text|>"); err == nil {
+				s.tokens = append(s.tokens, id)
+			}
+		}
+		if len(s.tokens) > 0 {
+			s.tokIndex = 0
+			return true
+		}
+	}
+	return false
+}
+
+// tokenizeBuffer tokenizes the accumulated text in the buffer.
+func (s *scanner) tokenizeBuffer() bool {
+	text := s.textBuf.String()
+	if len(text) == 0 {
+		return false
+	}
+
+	// For first chunk, handle BOS token
+	addBOS := s.opts.BOS && !s.sentBOS
+	if addBOS {
+		s.sentBOS = true
+	}
+
+	// Create temporary options for this chunk
+	chunkOpts := &EncodeOptions{
+		BOS: addBOS,
+		EOS: false, // Handle EOS separately at the end
+	}
+
+	// Tokenize the chunk
+	s.tokens = s.t.Encode(text, chunkOpts)
+	s.textBuf.Reset()
+
+	// Handle EOS if this is the last chunk
+	if s.done && s.opts.EOS {
+		if id, err := s.t.GetSpecialTokenID("<|end_of_text|>"); err == nil {
+			s.tokens = append(s.tokens, id)
+		}
+	}
+
+	return len(s.tokens) > 0
+}
+
 // Scan advances to the next token.
 func (s *scanner) Scan() bool {
 	if s.err != nil {
@@ -117,13 +244,12 @@ func (s *scanner) Scan() bool {
 	}
 
 	// If we have buffered tokens, return the next one
-	if s.tokIndex < len(s.tokens) {
-		s.tokIndex++
+	if s.scanBufferedToken() {
 		return true
 	}
 
-	// Check if we're done and have no more tokens
-	if s.done && s.textBuf.Len() == 0 {
+	// Check if we're done and have no more tokens to process
+	if s.done && s.textBuf.Len() == 0 && s.tokIndex >= len(s.tokens) {
 		return false
 	}
 
@@ -131,104 +257,48 @@ func (s *scanner) Scan() bool {
 	s.tokens = s.tokens[:0]
 	s.tokIndex = 0
 
-	// Read until we have enough text to tokenize
+	// Read and accumulate text until we have enough to tokenize
+	if err := s.readAndAccumulateText(); err != nil {
+		s.err = &ScanError{
+			Offset: int64(s.textBuf.Len()),
+			Text:   s.textBuf.String(),
+			Err:    err,
+		}
+		return false
+	}
+
+	// Tokenize the accumulated text or check if we have tokens from EOF handling
+	if s.tokenizeBuffer() || len(s.tokens) > 0 {
+		// We have tokens, advance to the first one
+		s.tokIndex = 1
+		return true
+	}
+
+	return false
+}
+
+// readAndAccumulateText reads data until we have enough to tokenize or reach EOF.
+func (s *scanner) readAndAccumulateText() error {
 	for {
 		// Try to read more data
-		buf := make([]byte, s.bufSize)
-		n, err := s.r.Read(buf)
-
-		if n > 0 {
-			// If we have pending bytes from a previous incomplete UTF-8 sequence,
-			// prepend them to the new data
-			toWrite := buf[:n]
-			if len(s.pending) > 0 {
-				toWrite = append(s.pending, buf[:n]...)
-				s.pending = nil
-			}
-
-			// Before writing, check if this would exceed our buffer limit
-			// and if so, check for UTF-8 boundaries in the new data
-			if s.textBuf.Len()+len(toWrite) > s.maxBuffer {
-				// We need to be careful about UTF-8 boundaries
-				maxWrite := s.maxBuffer - s.textBuf.Len()
-				if maxWrite > 0 && maxWrite < len(toWrite) {
-					// Check if we would split a UTF-8 sequence
-					writeUpTo := findUTF8Boundary(toWrite, maxWrite)
-					if writeUpTo < len(toWrite) {
-						// Save the rest for next iteration
-						s.pending = make([]byte, len(toWrite)-writeUpTo)
-						copy(s.pending, toWrite[writeUpTo:])
-						toWrite = toWrite[:writeUpTo]
-					}
-				}
-			}
-
-			s.textBuf.Write(toWrite)
-		}
+		_, err := s.readMoreData()
 
 		// Check if we've hit the maximum buffer size
 		if s.textBuf.Len() >= s.maxBuffer {
-			// Check if we need to handle a UTF-8 boundary at the exact limit
-			if s.textBuf.Len() == s.maxBuffer && len(s.pending) == 0 {
-				// We might have split a UTF-8 character at the boundary
-				buf := s.textBuf.Bytes()
-				if len(buf) > 0 && !isValidUTF8Ending(buf) {
-					// Find the last complete UTF-8 character
-					splitAt := findLastCompleteUTF8(buf)
-					if splitAt < len(buf) {
-						// Save the incomplete sequence
-						s.pending = make([]byte, len(buf)-splitAt)
-						copy(s.pending, buf[splitAt:])
-						s.textBuf.Truncate(splitAt)
-					}
-				}
-			}
-			// Force tokenization of what we have
+			s.handleMaxBufferReached()
 			break
 		}
 
 		if err != nil {
-			if err == io.EOF {
-				// End of input
-				s.done = true
+			return err
+		}
 
-				// If we have pending bytes at EOF, add them to the buffer
-				if len(s.pending) > 0 {
-					s.textBuf.Write(s.pending)
-					s.pending = nil
-				}
-
-				if s.textBuf.Len() == 0 {
-					// No more data to process
-					// Handle BOS for empty input
-					if s.opts.BOS && !s.sentBOS {
-						if id, err := s.t.GetSpecialTokenID("<|begin_of_text|>"); err == nil {
-							s.tokens = append(s.tokens, id)
-							s.sentBOS = true
-						}
-					}
-					// Handle EOS
-					if s.opts.EOS {
-						if id, err := s.t.GetSpecialTokenID("<|end_of_text|>"); err == nil {
-							s.tokens = append(s.tokens, id)
-						}
-					}
-					if len(s.tokens) > 0 {
-						s.tokIndex = 0
-						return s.Scan()
-					}
-					return false
-				}
-				// Process remaining text
-				break
+		if s.done {
+			// At EOF, check if we need to handle empty input
+			if s.textBuf.Len() == 0 && s.handleEOFTokens() {
+				return nil
 			}
-			// Read error
-			s.err = &ScanError{
-				Offset: int64(s.textBuf.Len()),
-				Text:   s.textBuf.String(),
-				Err:    err,
-			}
-			return false
+			break
 		}
 
 		// Look for a good tokenization boundary
@@ -237,39 +307,7 @@ func (s *scanner) Scan() bool {
 		}
 	}
 
-	// Tokenize accumulated text
-	text := s.textBuf.String()
-	if len(text) > 0 {
-		// For first chunk, handle BOS token
-		addBOS := s.opts.BOS && !s.sentBOS
-		if addBOS {
-			s.sentBOS = true
-		}
-
-		// Create temporary options for this chunk
-		chunkOpts := &EncodeOptions{
-			BOS: addBOS,
-			EOS: false, // Handle EOS separately at the end
-		}
-
-		// Tokenize the chunk
-		s.tokens = s.t.Encode(text, chunkOpts)
-		s.textBuf.Reset()
-
-		// Handle EOS if this is the last chunk
-		if s.done && s.opts.EOS {
-			if id, err := s.t.GetSpecialTokenID("<|end_of_text|>"); err == nil {
-				s.tokens = append(s.tokens, id)
-			}
-		}
-
-		if len(s.tokens) > 0 {
-			s.tokIndex = 0
-			return s.Scan() // Recursively call to return first token
-		}
-	}
-
-	return false
+	return nil
 }
 
 // Token returns the current token ID.
