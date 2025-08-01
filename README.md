@@ -10,15 +10,26 @@ A collection of high-performance tokenizer implementations in Go with a unified 
 
 ## Installation
 
+### Download Binary (Recommended)
+
+Download pre-built binaries from the [releases page](https://github.com/agentstation/tokenizer/releases/latest) for your platform:
+
+- Linux: `tokenizer_VERSION_linux_amd64.tar.gz` or `tokenizer_VERSION_linux_arm64.tar.gz`
+- macOS: `tokenizer_VERSION_darwin_amd64.tar.gz` or `tokenizer_VERSION_darwin_arm64.tar.gz`
+- Windows: `tokenizer_VERSION_windows_amd64.zip` or `tokenizer_VERSION_windows_arm64.zip`
+
 ### Using Go
 
 ```bash
 go install github.com/agentstation/tokenizer/cmd/tokenizer@latest
 ```
 
-### Download Binary
+### Using Homebrew (Coming Soon)
 
-Download pre-built binaries from the [releases page](https://github.com/agentstation/tokenizer/releases).
+```bash
+# Will be available after setting up Homebrew tap
+brew install agentstation/tap/tokenizer
+```
 
 ### Build from Source
 
