@@ -191,3 +191,4 @@ extract_data.js
 # Temporary test files
 test_output/
 tmp/
+completions/

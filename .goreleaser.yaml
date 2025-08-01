@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
     - go test ./...
+    - ./scripts/completions.sh
 
 builds:
   - id: tokenizer
@@ -65,6 +66,7 @@ archives:
     files:
       - LICENSE
       - README.md
+      - completions/*
 
 checksum:
   name_template: 'checksums.txt'
@@ -200,20 +202,11 @@ homebrew_casks:
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tokenizer"], sudo: false
           end
     
-    # Shell completions
+    # Shell completions (files included in the archive)
     completions:
-      bash: 
-        completion: |
-          output = Utils.safe_popen_read("#{staged_path}/tokenizer", "completion", "bash")
-          (bash_completion/"tokenizer").write output
-      zsh:
-        completion: |
-          output = Utils.safe_popen_read("#{staged_path}/tokenizer", "completion", "zsh")
-          (zsh_completion/"_tokenizer").write output
-      fish:
-        completion: |
-          output = Utils.safe_popen_read("#{staged_path}/tokenizer", "completion", "fish")
-          (fish_completion/"tokenizer.fish").write output
+      bash: completions/tokenizer.bash
+      zsh: completions/tokenizer.zsh
+      fish: completions/tokenizer.fish
     
     # Custom caveats
     caveats: |
