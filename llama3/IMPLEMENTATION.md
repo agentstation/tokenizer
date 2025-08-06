@@ -204,7 +204,7 @@ type Scanner interface {
 }
 ```
 
-Create a scanner with `tokenizer.NewScanner(reader)` or `NewScannerOptions` for custom configuration.
+Create a scanner with `tokenizer.NewScanner(reader, opts...)` with optional configuration.
 
 ### Pipeline Interfaces
 
@@ -285,7 +285,7 @@ if err := scanner.Err(); err != nil {
 
 Custom buffer configuration:
 ```go
-scanner := tokenizer.NewScannerOptions(reader,
+scanner := tokenizer.NewScanner(reader,
     llama3.WithBufferSize(8192),
     llama3.WithMaxBuffer(1024*1024),
     llama3.WithEncodeOptions(&llama3.EncodeOptions{
