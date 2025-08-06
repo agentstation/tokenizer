@@ -97,15 +97,31 @@ dev: ## Start development server with hot-reloading (requires Air)
 	@air
 
 .PHONY: demo
-demo: build ## Generate demo GIF using VHS
-	@echo "Generating demo GIF..."
+demo: ## Generate demo using VHS
+	@echo "Generating demo..."
 	@if ! command -v vhs >/dev/null 2>&1; then \
 		echo "VHS is not installed. Run 'devbox shell' or install with: brew install vhs"; \
 		exit 1; \
 	fi
+	@if ! command -v tokenizer >/dev/null 2>&1; then \
+		echo "tokenizer is not installed. Install with: brew install agentstation/tap/tokenizer"; \
+		exit 1; \
+	fi
+	@echo "Checking for JetBrains Mono font..."
+	@if ! fc-list 2>/dev/null | grep -q "JetBrains Mono" && ! ls ~/Library/Fonts/*JetBrains* /Library/Fonts/*JetBrains* /System/Library/Fonts/*JetBrains* 2>/dev/null | grep -q "JetBrains"; then \
+		echo "JetBrains Mono font not found."; \
+		if command -v brew >/dev/null 2>&1; then \
+			echo "Installing JetBrains Mono font..."; \
+			brew install --cask font-jetbrains-mono || true; \
+		else \
+			echo "Please install JetBrains Mono font manually or the demo will use the default font."; \
+		fi \
+	else \
+		echo "JetBrains Mono font found."; \
+	fi
 	@mkdir -p docs
 	@vhs scripts/demo.tape
-	@echo "Demo GIF generated: docs/demo.gif"
+	@echo "Demo generated: docs/demo.svg"
 
 .PHONY: fmt
 fmt: ## Run go fmt
