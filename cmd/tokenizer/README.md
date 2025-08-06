@@ -168,6 +168,8 @@ tokenizer [tokenizer-name] [command] [options]
 import "github.com/agentstation/tokenizer/cmd/tokenizer"
 ```
 
+Package main provides the tokenizer CLI tool.
+
 ## Index
 
 

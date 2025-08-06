@@ -454,8 +454,7 @@ Package llama3 implements the Llama 3 tokenizer in Go. This file contains the pu
   - [func \(t \*Tokenizer\) EncodeBPE\(pretoken string\) \[\]int](<#Tokenizer.EncodeBPE>)
   - [func \(t \*Tokenizer\) EncodeBytes\(data \[\]byte, opts \*EncodeOptions\) \[\]int](<#Tokenizer.EncodeBytes>)
   - [func \(t \*Tokenizer\) GetSpecialTokenID\(token string\) \(int, error\)](<#Tokenizer.GetSpecialTokenID>)
-  - [func \(t \*Tokenizer\) NewScanner\(r io.Reader\) Scanner](<#Tokenizer.NewScanner>)
-  - [func \(t \*Tokenizer\) NewScannerOptions\(r io.Reader, opts ...ScannerOption\) Scanner](<#Tokenizer.NewScannerOptions>)
+  - [func \(t \*Tokenizer\) NewScanner\(r io.Reader, opts ...ScannerOption\) Scanner](<#Tokenizer.NewScanner>)
   - [func \(t \*Tokenizer\) OptimisticCount\(text string\) int](<#Tokenizer.OptimisticCount>)
   - [func \(t \*Tokenizer\) PreTokenize\(text string\) \[\]string](<#Tokenizer.PreTokenize>)
   - [func \(t \*Tokenizer\) Process\(r io.Reader, w io.Writer\) \(int64, error\)](<#Tokenizer.Process>)
@@ -469,25 +468,25 @@ Package llama3 implements the Llama 3 tokenizer in Go. This file contains the pu
 
 ## Variables
 
-<a name="ErrDataNotFound"></a>Common errors
+<a name="ErrDataNotFound"></a>Common errors.
 
 ```go
 var (
-    // ErrDataNotFound indicates that the tokenizer data files could not be found
+    // ErrDataNotFound indicates that the tokenizer data files could not be found.
     ErrDataNotFound = errors.New("tokenizer data not found")
 
-    // ErrInvalidToken indicates an invalid token was provided
+    // ErrInvalidToken indicates an invalid token was provided.
     ErrInvalidToken = errors.New("invalid token")
 
-    // ErrTokenNotFound indicates a token was not found in the vocabulary
+    // ErrTokenNotFound indicates a token was not found in the vocabulary.
     ErrTokenNotFound = errors.New("token not found")
 
-    // ErrInvalidTokenID indicates an invalid token ID was provided
+    // ErrInvalidTokenID indicates an invalid token ID was provided.
     ErrInvalidTokenID = errors.New("invalid token ID")
 )
 ```
 
-<a name="WithBufferSize"></a>Scanner option functions \- these are re\-exported from the scanner package
+<a name="WithBufferSize"></a>Scanner option functions \- these are re\-exported from the scanner package.
 
 ```go
 var (
@@ -517,7 +516,7 @@ var (
 func NewConfigError(field string, value any, err error) error
 ```
 
-NewConfigError creates a new ConfigError
+NewConfigError creates a new ConfigError.
 
 <a name="NewDataError"></a>
 ## func [NewDataError](<https://github.com/agentstation/tokenizer/blob/master/llama3/errors.go#L81>)
@@ -526,7 +525,7 @@ NewConfigError creates a new ConfigError
 func NewDataError(op, path string, err error) error
 ```
 
-NewDataError creates a new DataError
+NewDataError creates a new DataError.
 
 <a name="NewTokenError"></a>
 ## func [NewTokenError](<https://github.com/agentstation/tokenizer/blob/master/llama3/errors.go#L86>)
@@ -535,7 +534,7 @@ NewDataError creates a new DataError
 func NewTokenError(op, token string, err error) error
 ```
 
-NewTokenError creates a new TokenError
+NewTokenError creates a new TokenError.
 
 <a name="NewTokenIDError"></a>
 ## func [NewTokenIDError](<https://github.com/agentstation/tokenizer/blob/master/llama3/errors.go#L91>)
@@ -544,7 +543,7 @@ NewTokenError creates a new TokenError
 func NewTokenIDError(op string, tokenID int, err error) error
 ```
 
-NewTokenIDError creates a new TokenError with a token ID
+NewTokenIDError creates a new TokenError with a token ID.
 
 <a name="BPE"></a>
 ## type [BPE](<https://github.com/agentstation/tokenizer/blob/master/llama3/tokenizer.go#L80-L84>)
@@ -583,7 +582,7 @@ type Cache interface {
 <a name="ConfigError"></a>
 ## type [ConfigError](<https://github.com/agentstation/tokenizer/blob/master/llama3/errors.go#L64-L68>)
 
-ConfigError represents an error in tokenizer configuration
+ConfigError represents an error in tokenizer configuration.
 
 ```go
 type ConfigError struct {
@@ -614,7 +613,7 @@ func (e *ConfigError) Unwrap() error
 <a name="DataError"></a>
 ## type [DataError](<https://github.com/agentstation/tokenizer/blob/master/llama3/errors.go#L24-L28>)
 
-DataError represents an error related to tokenizer data loading or processing
+DataError represents an error related to tokenizer data loading or processing.
 
 ```go
 type DataError struct {
@@ -809,7 +808,7 @@ type ScannerOption = scanner.Option
 <a name="TokenError"></a>
 ## type [TokenError](<https://github.com/agentstation/tokenizer/blob/master/llama3/errors.go#L42-L47>)
 
-TokenError represents an error related to token operations
+TokenError represents an error related to token operations.
 
 ```go
 type TokenError struct {
@@ -1082,22 +1081,13 @@ func main() {
 </details>
 
 <a name="Tokenizer.NewScanner"></a>
-### func \(\*Tokenizer\) [NewScanner](<https://github.com/agentstation/tokenizer/blob/master/llama3/scanner.go#L65>)
+### func \(\*Tokenizer\) [NewScanner](<https://github.com/agentstation/tokenizer/blob/master/llama3/scanner.go#L67>)
 
 ```go
-func (t *Tokenizer) NewScanner(r io.Reader) Scanner
+func (t *Tokenizer) NewScanner(r io.Reader, opts ...ScannerOption) Scanner
 ```
 
-NewScanner creates a scanner for streaming tokenization with default options.
-
-<a name="Tokenizer.NewScannerOptions"></a>
-### func \(\*Tokenizer\) [NewScannerOptions](<https://github.com/agentstation/tokenizer/blob/master/llama3/scanner.go#L70>)
-
-```go
-func (t *Tokenizer) NewScannerOptions(r io.Reader, opts ...ScannerOption) Scanner
-```
-
-NewScannerOptions creates a scanner with custom options.
+NewScanner creates a scanner for streaming tokenization. The scanner processes input with bounded memory usage, making it suitable for large files or continuous streams.
 
 <a name="Tokenizer.OptimisticCount"></a>
 ### func \(\*Tokenizer\) [OptimisticCount](<https://github.com/agentstation/tokenizer/blob/master/llama3/tokenizer.go#L373>)
