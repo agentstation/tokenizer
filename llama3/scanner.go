@@ -61,13 +61,13 @@ func (ta *tokenizerAdapter) Encode(text string, opts *scanner.EncodeOptions) []i
 	})
 }
 
-// NewScanner creates a scanner for streaming tokenization with default options.
-func (t *Tokenizer) NewScanner(r io.Reader) Scanner {
-	return scanner.New(&tokenizerAdapter{t}, r)
-}
-
-// NewScannerOptions creates a scanner with custom options.
-func (t *Tokenizer) NewScannerOptions(r io.Reader, opts ...ScannerOption) Scanner {
+// NewScanner creates a scanner for streaming tokenization.
+// The scanner processes input with bounded memory usage, making it suitable
+// for large files or continuous streams.
+func (t *Tokenizer) NewScanner(r io.Reader, opts ...ScannerOption) Scanner {
+	if len(opts) == 0 {
+		return scanner.New(&tokenizerAdapter{t}, r)
+	}
 	return scanner.NewWithOptions(&tokenizerAdapter{t}, r, opts...)
 }
 

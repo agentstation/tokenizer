@@ -72,7 +72,7 @@ tokenizer llama3 "Hello, world!"
 # Decode tokens
 tokenizer llama3 decode 128000 9906 11 1917 0 128001
 
-# Stream large files (automatic pipe detection)
+# Process large files (automatic pipe detection)
 cat document.txt | tokenizer llama3
 
 # Get tokenizer information
@@ -117,7 +117,7 @@ tokenizer llama3 "Hello, world!"
 tokenizer llama3 decode 128000 9906 11 1917 0 128001
 # Output: <|begin_of_text|>Hello, world!<|end_of_text|>
 
-# Stream from files (automatic)
+# Process from files (automatic)
 cat document.txt | tokenizer llama3
 
 # Get help
@@ -223,6 +223,8 @@ MIT
 ```go
 import "github.com/agentstation/tokenizer"
 ```
+
+Package tokenizer provides a collection of high\-performance tokenizer implementations.
 
 ## Index
 

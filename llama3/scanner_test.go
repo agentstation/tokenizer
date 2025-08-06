@@ -82,7 +82,7 @@ func TestScanner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := strings.NewReader(tt.input)
-			scanner := tokenizer.NewScannerOptions(reader, WithEncodeOptions(tt.opts))
+			scanner := tokenizer.NewScanner(reader, WithEncodeOptions(tt.opts))
 
 			var tokens []int
 			for scanner.Scan() {
@@ -125,7 +125,7 @@ func TestScannerOptions(t *testing.T) {
 		input := strings.Repeat("test ", 1000)
 		reader := strings.NewReader(input)
 
-		scanner := tokenizer.NewScannerOptions(reader,
+		scanner := tokenizer.NewScanner(reader,
 			WithBufferSize(128),
 			WithMaxBuffer(512),
 		)
@@ -197,7 +197,7 @@ func TestScannerEdgeCases(t *testing.T) {
 		reader := strings.NewReader(input)
 
 		// Small buffer that will force a split
-		scanner := tokenizer.NewScannerOptions(reader,
+		scanner := tokenizer.NewScanner(reader,
 			WithBufferSize(32),
 			WithMaxBuffer(64), // Will hit limit in middle of long word
 			WithEncodeOptions(&EncodeOptions{BOS: false, EOS: false}),
@@ -226,7 +226,7 @@ func TestScannerEdgeCases(t *testing.T) {
 		input := strings.Repeat("a", 62) + "世界" // Will hit 64-byte limit in middle of "世"
 		reader := strings.NewReader(input)
 
-		scanner := tokenizer.NewScannerOptions(reader,
+		scanner := tokenizer.NewScanner(reader,
 			WithBufferSize(32),
 			WithMaxBuffer(64),
 			WithEncodeOptions(&EncodeOptions{BOS: false, EOS: false}),
@@ -257,7 +257,7 @@ func TestScannerEdgeCases(t *testing.T) {
 			readSizes: []int{64, 10}, // Read exactly to buffer limit, splitting "世"
 		}
 
-		scanner := tokenizer.NewScannerOptions(reader,
+		scanner := tokenizer.NewScanner(reader,
 			WithBufferSize(64),
 			WithMaxBuffer(64), // Exact buffer size
 			WithEncodeOptions(&EncodeOptions{BOS: false, EOS: false}),
@@ -295,7 +295,7 @@ func TestScannerEdgeCases(t *testing.T) {
 		longText := strings.Repeat("The quick brown fox jumps over the lazy dog. ", 20)
 		reader := strings.NewReader(longText)
 
-		scanner := tokenizer.NewScannerOptions(reader,
+		scanner := tokenizer.NewScanner(reader,
 			WithBufferSize(32),
 			WithMaxBuffer(128), // Small enough to force multiple chunks
 			WithEncodeOptions(&EncodeOptions{BOS: false, EOS: false}),

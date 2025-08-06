@@ -44,6 +44,8 @@ Type "# Test encoding/decoding"
 Enter
 Type "tokenizer llama3 'Test data' | tokenizer llama3 decode"
 Enter
+Sleep 500ms
+Enter
 Sleep 2s
 
 # Tokenizer info

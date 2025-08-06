@@ -11,6 +11,16 @@ import (
 // This command provides encode, decode, stream, and info subcommands
 // for working with the Llama 3 tokenizer.
 func Command() *cobra.Command {
+	// Define shared flags that can be used with implicit encoding/streaming
+	var (
+		output    string
+		count     bool
+		countOnly bool
+		bos       bool
+		eos       bool
+		metrics   bool
+	)
+
 	cmd := &cobra.Command{
 		Use:   "llama3",
 		Short: "Llama 3 tokenizer operations",
@@ -22,7 +32,6 @@ vocabulary of 128,256 tokens (128,000 regular tokens + 256 special tokens).
 Available commands:
   encode - Encode text to token IDs (default when text is provided)
   decode - Decode token IDs to text
-  stream - Process text in streaming mode
   info   - Display tokenizer information`,
 		Example: `  # Encode text (explicit)
   tokenizer llama3 encode "Hello, world!"
@@ -30,14 +39,18 @@ Available commands:
   # Encode text (implicit - default action)
   tokenizer llama3 "Hello, world!"
   
+  # Encode with flags (implicit)
+  tokenizer llama3 "Hello, world!" --count
+  tokenizer llama3 "Hello, world!" --output json
+  
   # Decode tokens
   tokenizer llama3 decode 128000 9906 11 1917 0 128001
   
-  # Stream from stdin (explicit)
-  cat large_file.txt | tokenizer llama3 stream
-  
-  # Stream from stdin (implicit - automatic)
+  # Encode from stdin (implicit - automatic)
   cat large_file.txt | tokenizer llama3
+  
+  # Encode with flags (implicit)
+  cat large_file.txt | tokenizer llama3 --count-only
   
   # Show tokenizer info
   tokenizer llama3 info`,
@@ -63,15 +76,40 @@ Available commands:
 				// Not a subcommand, treat as text to encode
 				encodeCmd := newEncodeCmd()
 				encodeCmd.SetArgs(args)
+				// Copy over parent command flags for encode
+				encodeCmd.SetOut(cmd.OutOrStdout())
+				encodeCmd.SetErr(cmd.ErrOrStderr())
+				encodeCmd.SetIn(cmd.InOrStdin())
+
+				// Set flags from parent command
+				encAddBOS = bos
+				encAddEOS = eos
+				encOutput = output
+				encCount = count
+				encCountOnly = countOnly
+				encMetrics = metrics
+
 				return encodeCmd.Execute()
 			}
 
 			// No args provided - check if stdin is piped
 			stat, _ := os.Stdin.Stat()
 			if (stat.Mode() & os.ModeCharDevice) == 0 {
-				// Data is being piped to stdin, use streaming mode
-				streamCmd := newStreamCmd()
-				return streamCmd.Execute()
+				// Data is being piped to stdin, use encode
+				encodeCmd := newEncodeCmd()
+				encodeCmd.SetOut(cmd.OutOrStdout())
+				encodeCmd.SetErr(cmd.ErrOrStderr())
+				encodeCmd.SetIn(cmd.InOrStdin())
+
+				// Set flags from parent command
+				encAddBOS = bos
+				encAddEOS = eos
+				encOutput = output
+				encCount = count
+				encCountOnly = countOnly
+				encMetrics = metrics
+
+				return encodeCmd.RunE(encodeCmd, []string{})
 			}
 
 			// No args and no piped input, show help
@@ -79,11 +117,18 @@ Available commands:
 		},
 	}
 
+	// Add flags that work with implicit encoding/streaming
+	cmd.PersistentFlags().StringVarP(&output, "output", "o", "space", "Output format: space, newline, json")
+	cmd.PersistentFlags().BoolVar(&count, "count", false, "Show token count with output")
+	cmd.PersistentFlags().BoolVar(&countOnly, "count-only", false, "Show only token count (no tokens)")
+	cmd.PersistentFlags().BoolVar(&bos, "bos", true, "Add beginning of sequence token")
+	cmd.PersistentFlags().BoolVar(&eos, "eos", true, "Add end of sequence token")
+	cmd.PersistentFlags().BoolVar(&metrics, "metrics", false, "Show performance metrics")
+
 	// Add subcommands
 	cmd.AddCommand(
 		newEncodeCmd(),
 		newDecodeCmd(),
-		newStreamCmd(),
 		newInfoCmd(),
 	)
 
