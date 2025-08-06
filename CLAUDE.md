@@ -96,9 +96,8 @@ The tokenizer project is organized into modular packages with clear separation o
    - `tokens/` - Special token handling
 
 4. **llama3/cmd/llama3/** - Llama3-specific CLI commands
-   - `encode.go` - Text encoding command
+   - `encode.go` - Text encoding command (with memory-efficient streaming for stdin)
    - `decode.go` - Token decoding command
-   - `stream.go` - Streaming tokenization command
    - `info.go` - Tokenizer information command
 
 ### Key Architectural Decisions

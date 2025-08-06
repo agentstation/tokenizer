@@ -78,27 +78,21 @@ echo "128000 9906 11 1917 0 128001" | tokenizer llama3 decode
 # Round-trip encoding and decoding
 tokenizer llama3 "test" | tokenizer llama3 decode
 
-# Stream large files (automatic)
+# Process large files efficiently (automatic memory-efficient streaming)
 cat large_file.txt | tokenizer llama3
-
-# Stream large files (explicit)
-cat large_file.txt | tokenizer llama3 stream
 ```
 
-### Streaming Mode
+### Processing Large Files
 
-For processing large files or real-time input:
+The tokenizer automatically uses memory-efficient streaming when processing piped input:
 
 ```bash
-# Automatic streaming (detects piped input)
+# Process large files with O(1) memory usage
 tokenizer llama3 < input.txt
 cat large_file.txt | tokenizer llama3
 
-# Explicit streaming with options
-tokenizer llama3 stream --buffer-size=8192 --max-buffer=2097152 < large_file.txt
-
-# Stream without special tokens
-tokenizer llama3 stream --bos=false --eos=false < input.txt
+# Process without special tokens
+tokenizer llama3 --bos=false --eos=false < input.txt
 ```
 
 ## Available Tokenizers
@@ -108,9 +102,8 @@ tokenizer llama3 stream --bos=false --eos=false < input.txt
 Meta's Llama 3 tokenizer with 128,256 tokens (128,000 regular + 256 special tokens).
 
 **Commands:**
-- `encode` - Convert text to token IDs
+- `encode` - Convert text to token IDs (memory-efficient for stdin)
 - `decode` - Convert token IDs to text  
-- `stream` - Process text in streaming mode
 - `info` - Display tokenizer information
 
 ## Examples
