@@ -50,7 +50,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install Syft
-      uses: anchore/sbom-action/download-syft@v0.20.4
+      uses: anchore/sbom-action/download-syft@v0.20.5
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
