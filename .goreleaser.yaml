@@ -190,10 +190,6 @@ homebrew_casks:
     # Binary name (extracted from archive)
     binary: tokenizer
     
-    # Conflicts with old formula (for migration)
-    conflicts:
-      - formula: tokenizer
-    
     # Post-install hook for unsigned binaries (macOS)
     hooks:
       post:
