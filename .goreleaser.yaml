@@ -122,7 +122,8 @@ release:
     
     #### Homebrew (macOS and Linux)
     ```bash
-    brew install agentstation/tap/tokenizer
+    brew trust --cask agentstation/tap/tokenizer
+    brew install --cask agentstation/tap/tokenizer
     ```
     
     #### Docker
@@ -188,15 +189,16 @@ homebrew_casks:
     license: "MIT"
     
     # Binary name (extracted from archive)
-    binary: tokenizer
+    binaries:
+      - tokenizer
     
     # Post-install hook for unsigned binaries (macOS)
-    hooks:
-      post:
-        install: |
-          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tokenizer"], sudo: false
-          end
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/tokenizer"], sudo: false
+        end
+      end
     
     # Shell completions (files included in the archive)
     completions:
