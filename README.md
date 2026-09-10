@@ -15,14 +15,16 @@ A collection of high-performance tokenizer implementations in Go with a unified 
 ### Using Homebrew (Recommended for macOS/Linux)
 
 ```bash
-brew install agentstation/tap/tokenizer
+brew trust --cask agentstation/tap/tokenizer
+brew install --cask agentstation/tap/tokenizer
 ```
 
 Or tap the repository first:
 
 ```bash
 brew tap agentstation/tap
-brew install tokenizer
+brew trust --cask agentstation/tap/tokenizer
+brew install --cask agentstation/tap/tokenizer
 ```
 
 ### Download Binary
@@ -107,7 +109,8 @@ go get github.com/agentstation/tokenizer/llama3
 
 ```bash
 # Install via Homebrew
-brew install agentstation/tap/tokenizer
+brew trust --cask agentstation/tap/tokenizer
+brew install --cask agentstation/tap/tokenizer
 
 # Encode text (simple, intuitive)
 tokenizer llama3 "Hello, world!"
